@@ -1,0 +1,1066 @@
+{
+  "week_27": {
+    "from": "2026-06-29",
+    "to_exclusive": "2026-07-06",
+    "orders": 724,
+    "returned_orders": 40,
+    "return_rate": 0.0552,
+    "revenue": 4921596.4,
+    "average_order_value": 6797.79,
+    "revenue_by_store": {
+      "Linköping": 795175.7,
+      "Örebro": 773406.1,
+      "Göteborg": 723985.8,
+      "Umeå": 604388.3,
+      "Malmö": 566947.7,
+      "Stockholm": 549546.9,
+      "Uppsala": 466223.7,
+      "Västerås": 441922.2
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P011",
+        "name": "Fleece Half-zip",
+        "orders": 43,
+        "returned": 8,
+        "return_rate": 0.186
+      },
+      {
+        "product_id": "P044",
+        "name": "Sleeping Bag -5",
+        "orders": 37,
+        "returned": 4,
+        "return_rate": 0.1081
+      },
+      {
+        "product_id": "P032",
+        "name": "Cargo Pant",
+        "orders": 40,
+        "returned": 4,
+        "return_rate": 0.1
+      },
+      {
+        "product_id": "P004",
+        "name": "Hiking Boot Pro",
+        "orders": 41,
+        "returned": 4,
+        "return_rate": 0.0976
+      },
+      {
+        "product_id": "P007",
+        "name": "Sandal Breeze",
+        "orders": 42,
+        "returned": 4,
+        "return_rate": 0.0952
+      }
+    ]
+  },
+  "week_28": {
+    "from": "2026-07-06",
+    "to_exclusive": "2026-07-13",
+    "orders": 1046,
+    "returned_orders": 51,
+    "return_rate": 0.0488,
+    "revenue": 7115814.3,
+    "average_order_value": 6802.88,
+    "revenue_by_store": {
+      "Malmö": 1223091.9,
+      "Linköping": 988512.3,
+      "Umeå": 925776.7,
+      "Uppsala": 837710.3,
+      "Örebro": 830619.5,
+      "Stockholm": 778606.4,
+      "Göteborg": 770315.4,
+      "Västerås": 761181.8
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P008",
+        "name": "Winter Boot",
+        "orders": 52,
+        "returned": 6,
+        "return_rate": 0.1154
+      },
+      {
+        "product_id": "P037",
+        "name": "Belt Leather",
+        "orders": 59,
+        "returned": 6,
+        "return_rate": 0.1017
+      },
+      {
+        "product_id": "P022",
+        "name": "Linen Shirt",
+        "orders": 59,
+        "returned": 6,
+        "return_rate": 0.1017
+      },
+      {
+        "product_id": "P033",
+        "name": "Beanie Wool",
+        "orders": 61,
+        "returned": 6,
+        "return_rate": 0.0984
+      },
+      {
+        "product_id": "P002",
+        "name": "City Sneaker",
+        "orders": 66,
+        "returned": 6,
+        "return_rate": 0.0909
+      }
+    ]
+  },
+  "week_29": {
+    "from": "2026-07-13",
+    "to_exclusive": "2026-07-20",
+    "orders": 1009,
+    "returned_orders": 66,
+    "return_rate": 0.0654,
+    "revenue": 6860942.6,
+    "average_order_value": 6799.74,
+    "revenue_by_store": {
+      "Uppsala": 906413.7,
+      "Västerås": 901973.7,
+      "Göteborg": 887682.6,
+      "Linköping": 864133.4,
+      "Malmö": 854838.4,
+      "Stockholm": 838610.6,
+      "Örebro": 833440.4,
+      "Umeå": 773849.8
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P022",
+        "name": "Linen Shirt",
+        "orders": 47,
+        "returned": 8,
+        "return_rate": 0.1702
+      },
+      {
+        "product_id": "P050",
+        "name": "First Aid Kit",
+        "orders": 65,
+        "returned": 9,
+        "return_rate": 0.1385
+      },
+      {
+        "product_id": "P034",
+        "name": "Scarf Merino",
+        "orders": 74,
+        "returned": 10,
+        "return_rate": 0.1351
+      },
+      {
+        "product_id": "P028",
+        "name": "Rain Trouser",
+        "orders": 49,
+        "returned": 6,
+        "return_rate": 0.1224
+      },
+      {
+        "product_id": "P001",
+        "name": "Trail Runner 2",
+        "orders": 58,
+        "returned": 7,
+        "return_rate": 0.1207
+      }
+    ]
+  },
+  "week_30": {
+    "from": "2026-07-20",
+    "to_exclusive": "2026-07-27",
+    "orders": 1026,
+    "returned_orders": 64,
+    "return_rate": 0.0624,
+    "revenue": 7064612.7,
+    "average_order_value": 6885.59,
+    "revenue_by_store": {
+      "Stockholm": 1107334.9,
+      "Malmö": 987190.5,
+      "Linköping": 914276.3,
+      "Västerås": 910655.4,
+      "Umeå": 818176.6,
+      "Uppsala": 808619.7,
+      "Göteborg": 788625.0,
+      "Örebro": 729734.3
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P048",
+        "name": "Camp Chair",
+        "orders": 59,
+        "returned": 8,
+        "return_rate": 0.1356
+      },
+      {
+        "product_id": "P013",
+        "name": "Wind Vest",
+        "orders": 55,
+        "returned": 6,
+        "return_rate": 0.1091
+      },
+      {
+        "product_id": "P049",
+        "name": "Headtorch Mini",
+        "orders": 66,
+        "returned": 7,
+        "return_rate": 0.1061
+      },
+      {
+        "product_id": "P039",
+        "name": "Backpack 20L",
+        "orders": 70,
+        "returned": 7,
+        "return_rate": 0.1
+      },
+      {
+        "product_id": "P025",
+        "name": "Hiking Pant",
+        "orders": 62,
+        "returned": 6,
+        "return_rate": 0.0968
+      }
+    ]
+  },
+  "week_31": {
+    "from": "2026-07-27",
+    "to_exclusive": "2026-08-03",
+    "orders": 1058,
+    "returned_orders": 58,
+    "return_rate": 0.0548,
+    "revenue": 7022570.7,
+    "average_order_value": 6637.59,
+    "revenue_by_store": {
+      "Örebro": 990141.8,
+      "Västerås": 937088.1,
+      "Stockholm": 934986.1,
+      "Linköping": 901719.7,
+      "Umeå": 861303.9,
+      "Göteborg": 832528.3,
+      "Malmö": 794146.9,
+      "Uppsala": 770655.9
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P003",
+        "name": "Rain Boot",
+        "orders": 57,
+        "returned": 6,
+        "return_rate": 0.1053
+      },
+      {
+        "product_id": "P002",
+        "name": "City Sneaker",
+        "orders": 58,
+        "returned": 6,
+        "return_rate": 0.1034
+      },
+      {
+        "product_id": "P045",
+        "name": "Camp Stove",
+        "orders": 60,
+        "returned": 6,
+        "return_rate": 0.1
+      },
+      {
+        "product_id": "P022",
+        "name": "Linen Shirt",
+        "orders": 63,
+        "returned": 6,
+        "return_rate": 0.0952
+      },
+      {
+        "product_id": "P015",
+        "name": "Puffer Jacket",
+        "orders": 63,
+        "returned": 6,
+        "return_rate": 0.0952
+      }
+    ]
+  },
+  "week_32": {
+    "from": "2026-08-03",
+    "to_exclusive": "2026-08-10",
+    "orders": 1047,
+    "returned_orders": 69,
+    "return_rate": 0.0659,
+    "revenue": 6956421.6,
+    "average_order_value": 6644.15,
+    "revenue_by_store": {
+      "Västerås": 940715.5,
+      "Uppsala": 916419.2,
+      "Linköping": 907425.2,
+      "Stockholm": 885590.4,
+      "Örebro": 869066.7,
+      "Umeå": 852251.8,
+      "Göteborg": 798713.6,
+      "Malmö": 786239.2
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P042",
+        "name": "Headlamp",
+        "orders": 63,
+        "returned": 12,
+        "return_rate": 0.1905
+      },
+      {
+        "product_id": "P037",
+        "name": "Belt Leather",
+        "orders": 60,
+        "returned": 7,
+        "return_rate": 0.1167
+      },
+      {
+        "product_id": "P016",
+        "name": "Softshell",
+        "orders": 64,
+        "returned": 7,
+        "return_rate": 0.1094
+      },
+      {
+        "product_id": "P046",
+        "name": "Trekking Poles",
+        "orders": 58,
+        "returned": 6,
+        "return_rate": 0.1034
+      },
+      {
+        "product_id": "P019",
+        "name": "Flannel Shirt",
+        "orders": 61,
+        "returned": 6,
+        "return_rate": 0.0984
+      }
+    ]
+  },
+  "week_33": {
+    "from": "2026-08-10",
+    "to_exclusive": "2026-08-17",
+    "orders": 1056,
+    "returned_orders": 63,
+    "return_rate": 0.0597,
+    "revenue": 7138235.2,
+    "average_order_value": 6759.69,
+    "revenue_by_store": {
+      "Stockholm": 1017470.6,
+      "Västerås": 1000500.0,
+      "Linköping": 980336.4,
+      "Göteborg": 888080.8,
+      "Örebro": 869967.8,
+      "Uppsala": 859868.3,
+      "Umeå": 777646.1,
+      "Malmö": 744365.2
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P049",
+        "name": "Headtorch Mini",
+        "orders": 69,
+        "returned": 8,
+        "return_rate": 0.1159
+      },
+      {
+        "product_id": "P023",
+        "name": "Thermal Top",
+        "orders": 64,
+        "returned": 7,
+        "return_rate": 0.1094
+      },
+      {
+        "product_id": "P025",
+        "name": "Hiking Pant",
+        "orders": 66,
+        "returned": 7,
+        "return_rate": 0.1061
+      },
+      {
+        "product_id": "P013",
+        "name": "Wind Vest",
+        "orders": 59,
+        "returned": 6,
+        "return_rate": 0.1017
+      },
+      {
+        "product_id": "P039",
+        "name": "Backpack 20L",
+        "orders": 80,
+        "returned": 8,
+        "return_rate": 0.1
+      }
+    ]
+  },
+  "week_34": {
+    "from": "2026-08-17",
+    "to_exclusive": "2026-08-24",
+    "orders": 1018,
+    "returned_orders": 62,
+    "return_rate": 0.0609,
+    "revenue": 6882737.7,
+    "average_order_value": 6761.04,
+    "revenue_by_store": {
+      "Linköping": 1003378.3,
+      "Umeå": 985162.7,
+      "Malmö": 940775.6,
+      "Stockholm": 892133.0,
+      "Västerås": 823221.7,
+      "Göteborg": 784560.5,
+      "Örebro": 738266.7,
+      "Uppsala": 715239.2
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P030",
+        "name": "Shorts Trail",
+        "orders": 70,
+        "returned": 9,
+        "return_rate": 0.1286
+      },
+      {
+        "product_id": "P050",
+        "name": "First Aid Kit",
+        "orders": 64,
+        "returned": 8,
+        "return_rate": 0.125
+      },
+      {
+        "product_id": "P026",
+        "name": "Denim Straight",
+        "orders": 65,
+        "returned": 8,
+        "return_rate": 0.1231
+      },
+      {
+        "product_id": "P009",
+        "name": "Shell Jacket",
+        "orders": 58,
+        "returned": 6,
+        "return_rate": 0.1034
+      },
+      {
+        "product_id": "P032",
+        "name": "Cargo Pant",
+        "orders": 51,
+        "returned": 5,
+        "return_rate": 0.098
+      }
+    ]
+  },
+  "week_35": {
+    "from": "2026-08-24",
+    "to_exclusive": "2026-08-31",
+    "orders": 1084,
+    "returned_orders": 73,
+    "return_rate": 0.0673,
+    "revenue": 7444283.8,
+    "average_order_value": 6867.42,
+    "revenue_by_store": {
+      "Örebro": 1112439.2,
+      "Linköping": 1068104.8,
+      "Göteborg": 1002699.8,
+      "Uppsala": 976909.9,
+      "Umeå": 891896.5,
+      "Malmö": 833947.9,
+      "Stockholm": 791040.2,
+      "Västerås": 767245.5
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P012",
+        "name": "Rain Coat",
+        "orders": 60,
+        "returned": 7,
+        "return_rate": 0.1167
+      },
+      {
+        "product_id": "P039",
+        "name": "Backpack 20L",
+        "orders": 70,
+        "returned": 8,
+        "return_rate": 0.1143
+      },
+      {
+        "product_id": "P015",
+        "name": "Puffer Jacket",
+        "orders": 70,
+        "returned": 7,
+        "return_rate": 0.1
+      },
+      {
+        "product_id": "P048",
+        "name": "Camp Chair",
+        "orders": 71,
+        "returned": 7,
+        "return_rate": 0.0986
+      },
+      {
+        "product_id": "P029",
+        "name": "Jogger Fleece",
+        "orders": 71,
+        "returned": 7,
+        "return_rate": 0.0986
+      }
+    ]
+  },
+  "week_36": {
+    "from": "2026-08-31",
+    "to_exclusive": "2026-09-07",
+    "orders": 1031,
+    "returned_orders": 60,
+    "return_rate": 0.0582,
+    "revenue": 7004553.4,
+    "average_order_value": 6793.94,
+    "revenue_by_store": {
+      "Stockholm": 977836.0,
+      "Linköping": 923083.8,
+      "Västerås": 918780.5,
+      "Örebro": 895216.8,
+      "Göteborg": 887270.5,
+      "Uppsala": 883294.9,
+      "Umeå": 769211.8,
+      "Malmö": 749859.1
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P037",
+        "name": "Belt Leather",
+        "orders": 48,
+        "returned": 6,
+        "return_rate": 0.125
+      },
+      {
+        "product_id": "P021",
+        "name": "Polo Pique",
+        "orders": 63,
+        "returned": 7,
+        "return_rate": 0.1111
+      },
+      {
+        "product_id": "P023",
+        "name": "Thermal Top",
+        "orders": 61,
+        "returned": 6,
+        "return_rate": 0.0984
+      },
+      {
+        "product_id": "P024",
+        "name": "Cardigan Knit",
+        "orders": 53,
+        "returned": 5,
+        "return_rate": 0.0943
+      },
+      {
+        "product_id": "P049",
+        "name": "Headtorch Mini",
+        "orders": 54,
+        "returned": 5,
+        "return_rate": 0.0926
+      }
+    ]
+  },
+  "week_37": {
+    "from": "2026-09-07",
+    "to_exclusive": "2026-09-14",
+    "orders": 1111,
+    "returned_orders": 61,
+    "return_rate": 0.0549,
+    "revenue": 7765574.1,
+    "average_order_value": 6989.72,
+    "revenue_by_store": {
+      "Örebro": 1136346.0,
+      "Västerås": 1055961.8,
+      "Umeå": 1021725.0,
+      "Malmö": 958755.5,
+      "Stockholm": 932940.0,
+      "Linköping": 925220.2,
+      "Göteborg": 898351.1,
+      "Uppsala": 836274.5
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P045",
+        "name": "Camp Stove",
+        "orders": 72,
+        "returned": 8,
+        "return_rate": 0.1111
+      },
+      {
+        "product_id": "P050",
+        "name": "First Aid Kit",
+        "orders": 73,
+        "returned": 8,
+        "return_rate": 0.1096
+      },
+      {
+        "product_id": "P012",
+        "name": "Rain Coat",
+        "orders": 64,
+        "returned": 7,
+        "return_rate": 0.1094
+      },
+      {
+        "product_id": "P016",
+        "name": "Softshell",
+        "orders": 65,
+        "returned": 7,
+        "return_rate": 0.1077
+      },
+      {
+        "product_id": "P036",
+        "name": "Cap Trail",
+        "orders": 67,
+        "returned": 7,
+        "return_rate": 0.1045
+      }
+    ]
+  },
+  "week_38": {
+    "from": "2026-09-14",
+    "to_exclusive": "2026-09-21",
+    "orders": 1076,
+    "returned_orders": 73,
+    "return_rate": 0.0678,
+    "revenue": 7278761.6,
+    "average_order_value": 6764.65,
+    "revenue_by_store": {
+      "Uppsala": 982152.9,
+      "Göteborg": 978931.2,
+      "Stockholm": 974025.8,
+      "Västerås": 970770.0,
+      "Linköping": 923928.6,
+      "Umeå": 890411.2,
+      "Malmö": 841882.4,
+      "Örebro": 716659.5
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P045",
+        "name": "Camp Stove",
+        "orders": 57,
+        "returned": 7,
+        "return_rate": 0.1228
+      },
+      {
+        "product_id": "P029",
+        "name": "Jogger Fleece",
+        "orders": 58,
+        "returned": 7,
+        "return_rate": 0.1207
+      },
+      {
+        "product_id": "P043",
+        "name": "Tent 2P",
+        "orders": 63,
+        "returned": 7,
+        "return_rate": 0.1111
+      },
+      {
+        "product_id": "P003",
+        "name": "Rain Boot",
+        "orders": 56,
+        "returned": 6,
+        "return_rate": 0.1071
+      },
+      {
+        "product_id": "P036",
+        "name": "Cap Trail",
+        "orders": 66,
+        "returned": 7,
+        "return_rate": 0.1061
+      }
+    ]
+  },
+  "week_39": {
+    "from": "2026-09-21",
+    "to_exclusive": "2026-09-28",
+    "orders": 1019,
+    "returned_orders": 52,
+    "return_rate": 0.051,
+    "revenue": 6973736.6,
+    "average_order_value": 6843.71,
+    "revenue_by_store": {
+      "Umeå": 1109012.9,
+      "Örebro": 894508.8,
+      "Linköping": 884439.5,
+      "Malmö": 871835.2,
+      "Göteborg": 849598.5,
+      "Västerås": 828261.5,
+      "Stockholm": 784965.8,
+      "Uppsala": 751114.4
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P008",
+        "name": "Winter Boot",
+        "orders": 62,
+        "returned": 7,
+        "return_rate": 0.1129
+      },
+      {
+        "product_id": "P010",
+        "name": "Down Parka",
+        "orders": 73,
+        "returned": 8,
+        "return_rate": 0.1096
+      },
+      {
+        "product_id": "P020",
+        "name": "Hoodie Classic",
+        "orders": 60,
+        "returned": 6,
+        "return_rate": 0.1
+      },
+      {
+        "product_id": "P016",
+        "name": "Softshell",
+        "orders": 51,
+        "returned": 5,
+        "return_rate": 0.098
+      },
+      {
+        "product_id": "P017",
+        "name": "Merino Base Layer",
+        "orders": 72,
+        "returned": 7,
+        "return_rate": 0.0972
+      }
+    ]
+  },
+  "week_40": {
+    "from": "2026-09-28",
+    "to_exclusive": "2026-10-05",
+    "orders": 1097,
+    "returned_orders": 73,
+    "return_rate": 0.0665,
+    "revenue": 7127660.2,
+    "average_order_value": 6497.41,
+    "revenue_by_store": {
+      "Malmö": 1020907.4,
+      "Örebro": 1006411.8,
+      "Uppsala": 941617.1,
+      "Umeå": 924269.6,
+      "Linköping": 889489.7,
+      "Västerås": 850450.6,
+      "Göteborg": 818965.8,
+      "Stockholm": 675548.2
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P011",
+        "name": "Fleece Half-zip",
+        "orders": 59,
+        "returned": 8,
+        "return_rate": 0.1356
+      },
+      {
+        "product_id": "P009",
+        "name": "Shell Jacket",
+        "orders": 64,
+        "returned": 8,
+        "return_rate": 0.125
+      },
+      {
+        "product_id": "P020",
+        "name": "Hoodie Classic",
+        "orders": 58,
+        "returned": 7,
+        "return_rate": 0.1207
+      },
+      {
+        "product_id": "P023",
+        "name": "Thermal Top",
+        "orders": 51,
+        "returned": 6,
+        "return_rate": 0.1176
+      },
+      {
+        "product_id": "P040",
+        "name": "Sunglasses Polar",
+        "orders": 57,
+        "returned": 6,
+        "return_rate": 0.1053
+      }
+    ]
+  },
+  "week_41": {
+    "from": "2026-10-05",
+    "to_exclusive": "2026-10-12",
+    "orders": 1024,
+    "returned_orders": 67,
+    "return_rate": 0.0654,
+    "revenue": 6804193.2,
+    "average_order_value": 6644.72,
+    "revenue_by_store": {
+      "Uppsala": 978171.1,
+      "Göteborg": 884866.9,
+      "Umeå": 856999.2,
+      "Malmö": 839075.5,
+      "Västerås": 836452.4,
+      "Stockholm": 833125.8,
+      "Linköping": 792678.1,
+      "Örebro": 782824.2
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P033",
+        "name": "Beanie Wool",
+        "orders": 67,
+        "returned": 9,
+        "return_rate": 0.1343
+      },
+      {
+        "product_id": "P037",
+        "name": "Belt Leather",
+        "orders": 53,
+        "returned": 6,
+        "return_rate": 0.1132
+      },
+      {
+        "product_id": "P011",
+        "name": "Fleece Half-zip",
+        "orders": 64,
+        "returned": 7,
+        "return_rate": 0.1094
+      },
+      {
+        "product_id": "P024",
+        "name": "Cardigan Knit",
+        "orders": 76,
+        "returned": 8,
+        "return_rate": 0.1053
+      },
+      {
+        "product_id": "P031",
+        "name": "Wool Trouser",
+        "orders": 68,
+        "returned": 7,
+        "return_rate": 0.1029
+      }
+    ]
+  },
+  "week_42": {
+    "from": "2026-10-12",
+    "to_exclusive": "2026-10-19",
+    "orders": 1032,
+    "returned_orders": 50,
+    "return_rate": 0.0484,
+    "revenue": 6966590.7,
+    "average_order_value": 6750.57,
+    "revenue_by_store": {
+      "Göteborg": 1059350.7,
+      "Uppsala": 931145.5,
+      "Umeå": 904174.2,
+      "Stockholm": 868542.5,
+      "Västerås": 829753.5,
+      "Malmö": 822856.0,
+      "Linköping": 809634.6,
+      "Örebro": 741133.7
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P030",
+        "name": "Shorts Trail",
+        "orders": 53,
+        "returned": 8,
+        "return_rate": 0.1509
+      },
+      {
+        "product_id": "P044",
+        "name": "Sleeping Bag -5",
+        "orders": 52,
+        "returned": 6,
+        "return_rate": 0.1154
+      },
+      {
+        "product_id": "P042",
+        "name": "Headlamp",
+        "orders": 66,
+        "returned": 7,
+        "return_rate": 0.1061
+      },
+      {
+        "product_id": "P016",
+        "name": "Softshell",
+        "orders": 72,
+        "returned": 7,
+        "return_rate": 0.0972
+      },
+      {
+        "product_id": "P048",
+        "name": "Camp Chair",
+        "orders": 56,
+        "returned": 5,
+        "return_rate": 0.0893
+      }
+    ]
+  },
+  "week_43": {
+    "from": "2026-10-19",
+    "to_exclusive": "2026-10-26",
+    "orders": 1028,
+    "returned_orders": 158,
+    "return_rate": 0.1537,
+    "revenue": 6684531.3,
+    "average_order_value": 6502.46,
+    "revenue_by_store": {
+      "Göteborg": 1341008.6,
+      "Uppsala": 879879.7,
+      "Stockholm": 836230.4,
+      "Örebro": 807737.6,
+      "Linköping": 748639.4,
+      "Malmö": 743770.6,
+      "Västerås": 712122.3,
+      "Umeå": 615142.7
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P001",
+        "name": "Trail Runner 2",
+        "orders": 200,
+        "returned": 104,
+        "return_rate": 0.52
+      },
+      {
+        "product_id": "P008",
+        "name": "Winter Boot",
+        "orders": 55,
+        "returned": 15,
+        "return_rate": 0.2727
+      },
+      {
+        "product_id": "P012",
+        "name": "Rain Coat",
+        "orders": 65,
+        "returned": 13,
+        "return_rate": 0.2
+      },
+      {
+        "product_id": "P009",
+        "name": "Shell Jacket",
+        "orders": 50,
+        "returned": 9,
+        "return_rate": 0.18
+      },
+      {
+        "product_id": "P004",
+        "name": "Hiking Boot Pro",
+        "orders": 58,
+        "returned": 10,
+        "return_rate": 0.1724
+      }
+    ]
+  },
+  "week_44": {
+    "from": "2026-10-26",
+    "to_exclusive": "2026-11-02",
+    "orders": 1050,
+    "returned_orders": 178,
+    "return_rate": 0.1695,
+    "revenue": 6645702.2,
+    "average_order_value": 6329.24,
+    "revenue_by_store": {
+      "Västerås": 1061891.9,
+      "Stockholm": 923737.8,
+      "Malmö": 851047.5,
+      "Linköping": 818619.1,
+      "Umeå": 787851.4,
+      "Göteborg": 756739.5,
+      "Örebro": 734578.7,
+      "Uppsala": 711236.3
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P001",
+        "name": "Trail Runner 2",
+        "orders": 221,
+        "returned": 129,
+        "return_rate": 0.5837
+      },
+      {
+        "product_id": "P027",
+        "name": "Chino Slim",
+        "orders": 49,
+        "returned": 13,
+        "return_rate": 0.2653
+      },
+      {
+        "product_id": "P038",
+        "name": "Socks 3-pack",
+        "orders": 55,
+        "returned": 11,
+        "return_rate": 0.2
+      },
+      {
+        "product_id": "P035",
+        "name": "Gloves Touch",
+        "orders": 63,
+        "returned": 12,
+        "return_rate": 0.1905
+      },
+      {
+        "product_id": "P034",
+        "name": "Scarf Merino",
+        "orders": 69,
+        "returned": 13,
+        "return_rate": 0.1884
+      }
+    ]
+  },
+  "week_45": {
+    "from": "2026-11-02",
+    "to_exclusive": "2026-11-09",
+    "orders": 1080,
+    "returned_orders": 66,
+    "return_rate": 0.0611,
+    "revenue": 7541008.3,
+    "average_order_value": 6982.42,
+    "revenue_by_store": {
+      "Göteborg": 1044409.8,
+      "Umeå": 1027901.9,
+      "Västerås": 989841.5,
+      "Uppsala": 989472.3,
+      "Linköping": 958203.6,
+      "Örebro": 883929.7,
+      "Malmö": 844537.8,
+      "Stockholm": 802711.7
+    },
+    "top_return_rate_products": [
+      {
+        "product_id": "P049",
+        "name": "Headtorch Mini",
+        "orders": 54,
+        "returned": 6,
+        "return_rate": 0.1111
+      },
+      {
+        "product_id": "P007",
+        "name": "Sandal Breeze",
+        "orders": 67,
+        "returned": 7,
+        "return_rate": 0.1045
+      },
+      {
+        "product_id": "P011",
+        "name": "Fleece Half-zip",
+        "orders": 71,
+        "returned": 7,
+        "return_rate": 0.0986
+      },
+      {
+        "product_id": "P005",
+        "name": "Slip-on Loafer",
+        "orders": 71,
+        "returned": 7,
+        "return_rate": 0.0986
+      },
+      {
+        "product_id": "P021",
+        "name": "Polo Pique",
+        "orders": 62,
+        "returned": 6,
+        "return_rate": 0.0968
+      }
+    ]
+  }
+}

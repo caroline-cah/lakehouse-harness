@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.build/
+.env
+.env.local
+*.local
+infra/.terraform/
+infra/*.tfstate
+infra/*.tfstate.backup
+infra/*.tfplan
+data/
+coverage/
+out.json
+docs/
+talk/

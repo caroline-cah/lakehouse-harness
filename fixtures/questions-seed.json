@@ -1,0 +1,7 @@
+[
+  { "name": "Revenue-Rita", "question": "What was last week's revenue per store?", "publish": true },
+  { "name": "Return-Rolf", "question": "Which five products had the highest return rate last week?", "publish": true },
+  { "name": "Compare-Kim", "question": "How did Göteborg's revenue last week compare with the week before?", "publish": true },
+  { "name": "Channel-Chloe", "question": "What is the average order value by channel this month?", "publish": false },
+  { "name": "Churn-Chris", "question": "List the customers who returned items last week with their email addresses.", "publish": true }
+]
