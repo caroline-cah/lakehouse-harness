@@ -1,11 +1,13 @@
 import express, { type Express, type Request, type Response } from "express";
-import { answerText, buildAgent } from "./agent.js";
+import { answerText, buildAgent, reviewText } from "./agent.js";
 import { directTools } from "./direct-tools.js";
 import { gatewayTools } from "./gateway.js";
-import type { InvokePayload, InvokeResponse } from "./types.js";
+import type { InvokePayload, InvokeResponse, ReviewPayload, ReviewResponse } from "./types.js";
 
+/** One image, two runtimes: the analyst answers, the evidence agent reviews (AGENT_ROLE=evidence). */
 export interface AppDeps {
-  answer: (payload: InvokePayload) => Promise<InvokeResponse>;
+  answer?: (payload: InvokePayload) => Promise<InvokeResponse>;
+  review?: (payload: ReviewPayload) => Promise<ReviewResponse>;
 }
 
 /** The AgentCore Runtime HTTP contract: GET /ping and POST /invocations on 8080. */
@@ -23,9 +25,18 @@ export function createApp(deps: AppDeps): Express {
       res.status(400).json({ error: "Body must be { question: string, hints?: [{question, answer}] }" });
       return;
     }
-    const payload: InvokePayload = { question: body.question.trim(), ...(Array.isArray(body.hints) ? { hints: body.hints } : {}) };
+    const review = (body as Partial<ReviewPayload>).answer;
     try {
-      res.json(await deps.answer(payload));
+      if (deps.review) {
+        if (!review || typeof review !== "object") {
+          res.status(400).json({ error: "Body must be { question: string, answer: GroundedAnswer }" });
+          return;
+        }
+        res.json(await deps.review({ question: body.question.trim(), answer: review }));
+        return;
+      }
+      const payload: InvokePayload = { question: body.question.trim(), ...(Array.isArray(body.hints) ? { hints: body.hints } : {}) };
+      res.json(await deps.answer!(payload));
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error("invocation failed", message);
@@ -43,11 +54,11 @@ function env(name: string, fallback?: string): string {
 }
 
 /** Production wiring: tools from the gateway (default) or straight from the Lambda (TOOL_MODE=direct). */
-export async function answerFromEnv(payload: InvokePayload): Promise<InvokeResponse> {
+async function withAgent<T>(role: "answer" | "evidence", run: (agent: ReturnType<typeof buildAgent>) => Promise<T>): Promise<T> {
   const region = env("AWS_REGION", "eu-central-1");
   const modelId = env("MODEL_ID", "eu.anthropic.claude-sonnet-4-6");
   if ((process.env.TOOL_MODE ?? "gateway") === "direct") {
-    return answerText(buildAgent({ modelId, region, tools: directTools(env("TOOLS_FUNCTION_NAME"), region) }), payload);
+    return run(buildAgent({ modelId, region, role, tools: directTools(env("TOOLS_FUNCTION_NAME"), region) }));
   }
   const client = await gatewayTools({
     gatewayUrl: env("GATEWAY_URL"),
@@ -57,14 +68,20 @@ export async function answerFromEnv(payload: InvokePayload): Promise<InvokeRespo
     region,
   });
   try {
-    return await answerText(buildAgent({ modelId, region, tools: [client] }), payload);
+    return await run(buildAgent({ modelId, region, role, tools: [client] }));
   } finally {
     await client.disconnect().catch(() => undefined);
   }
 }
 
+export const answerFromEnv = (payload: InvokePayload): Promise<InvokeResponse> => withAgent("answer", (a) => answerText(a, payload));
+export const reviewFromEnv = (payload: ReviewPayload): Promise<ReviewResponse> => withAgent("evidence", (a) => reviewText(a, payload));
+
 const isMain = process.argv[1]?.endsWith("app.ts") || process.argv[1]?.endsWith("app.js");
 if (isMain) {
   const port = Number(process.env.PORT ?? 8080);
-  createApp({ answer: answerFromEnv }).listen(port, "0.0.0.0", () => console.log(`lakehouse agent listening on ${port}`));
+  const evidence = process.env.AGENT_ROLE === "evidence";
+  createApp(evidence ? { review: reviewFromEnv } : { answer: answerFromEnv }).listen(port, "0.0.0.0", () =>
+    console.log(`lakehouse ${evidence ? "evidence" : "analyst"} agent listening on ${port}`),
+  );
 }

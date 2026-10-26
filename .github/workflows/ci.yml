@@ -1,0 +1,28 @@
+# The merge gate: nothing an agent (or a human) changes lands on main unless the harness still holds.
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Data model is regenerated
+        run: git diff --exit-code -- packages/shared/src/data-model.generated.ts data-model/data-model.json
+      - name: Lakehouse generator
+        working-directory: scripts/lakehouse
+        run: python3 -m unittest test_generate
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform format
+        run: terraform fmt -check -recursive infra

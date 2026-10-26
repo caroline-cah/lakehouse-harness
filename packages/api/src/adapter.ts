@@ -7,11 +7,20 @@ import type { EvalResult, Question, QuestionStore } from "./types.js";
 export interface AdapterDeps {
   store: QuestionStore;
   boardToken: string;
-  /** Fire-and-forget: Lambda Event invocation of the worker. */
-  invokeWorker: (id: string) => Promise<void>;
-  publish: (q: Question) => Promise<string>;
+  /** Starts the Step Functions workflow for a new question; the execution is named after the question id. */
+  startWorkflow: (id: string) => Promise<void>;
+  /** Hands a human decision back to the workflow waiting on this task token. */
+  resume: (taskToken: string, decision: Decision) => Promise<void>;
   listEvaluations: (id: string) => Promise<EvalResult[]>;
   now?: () => string;
+}
+
+export type Decision = { decision: "publish" } | { decision: "reject"; reason: string };
+
+/** The task token is a capability to resume the workflow: it stays on the server. */
+function view(q: Question): Omit<Question, "taskToken"> {
+  const { taskToken: _token, ...rest } = q;
+  return rest;
 }
 
 const CORS = { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type,x-board-token", "access-control-allow-methods": "GET,POST,OPTIONS" };
@@ -32,7 +41,7 @@ function parseBody(event: APIGatewayProxyEventV2): Record<string, unknown> {
   }
 }
 
-/** The fast path: form, intake, board reads, Approve / Reject. Everything slow is the worker's job. */
+/** The fast path: form, intake, board reads, Approve / Reject. Everything slow is the workflow's job. */
 export function createAdapter(deps: AdapterDeps) {
   const now = deps.now ?? (() => new Date().toISOString());
   return async function handler(event: APIGatewayProxyEventV2): Promise<Result> {
@@ -52,31 +61,35 @@ export function createAdapter(deps: AdapterDeps) {
       const at = now();
       const q: Question = { id: newQuestionId(), ...v.value, status: "asked", createdAt: at, updatedAt: at };
       await deps.store.putQuestion(q);
-      await deps.invokeWorker(q.id);
+      await deps.startWorkflow(q.id);
       return isForm ? { statusCode: 303, headers: { location: `/?asked=${q.id}` } } : json(201, { id: q.id, status: q.status });
     }
 
     if (event.headers?.["x-board-token"] !== deps.boardToken) return json(401, { error: "board token required" });
 
-    if (method === "GET" && path === "/questions") return json(200, await deps.store.listQuestions());
+    if (method === "GET" && path === "/questions") return json(200, (await deps.store.listQuestions()).map(view));
 
     const m = /^\/questions\/([^/]+)(?:\/(publish|reject|evaluations))?$/.exec(path);
     if (m) {
       const [, id, action] = m;
       const q = await deps.store.getQuestion(id!);
       if (!q) return json(404, { error: "not found" });
-      if (method === "GET" && !action) return json(200, q);
+      if (method === "GET" && !action) return json(200, view(q));
       if (method === "GET" && action === "evaluations") return json(200, await deps.listEvaluations(q.id));
       if (method === "POST" && action === "publish") {
         if (q.status !== "needs_you") return json(409, { error: `cannot publish a question in status ${q.status}` });
         if (!q.publish) return json(409, { error: "the asker opted out of publishing" });
-        const publishedUrl = await deps.publish(q);
-        return json(200, await deps.store.updateQuestion(q.id, { status: "published", publishedUrl }));
+        if (q.evidence?.overall === "denied") return json(409, { error: "the evidence agent denied this answer" });
+        if (!q.taskToken) return json(409, { error: "the workflow is not waiting for a decision" });
+        await deps.resume(q.taskToken, { decision: "publish" });
+        return json(202, view(q));
       }
       if (method === "POST" && action === "reject") {
         if (q.status !== "needs_you") return json(409, { error: `cannot reject a question in status ${q.status}` });
+        if (!q.taskToken) return json(409, { error: "the workflow is not waiting for a decision" });
         const body = parseBody(event);
-        return json(200, await deps.store.updateQuestion(q.id, { status: "rejected", rejectReason: typeof body.reason === "string" ? body.reason.slice(0, 200) : "rejected" }));
+        await deps.resume(q.taskToken, { decision: "reject", reason: typeof body.reason === "string" ? body.reason.slice(0, 200) : "rejected" });
+        return json(202, view(q));
       }
     }
     return json(404, { error: "not found" });

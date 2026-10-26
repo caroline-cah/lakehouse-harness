@@ -66,4 +66,17 @@ describe("badge grouping", () => {
     expect(screen.getByText(/ToolSelectionAccuracy No 0\.00 · 2\/3/)).toBeTruthy();
     expect(screen.getByText(/SqlGuard PASS 1\.00/)).toBeTruthy();
   });
+  test("evidence verdicts are stamped on their claims, and a denial removes Approve", () => {
+    const denied: Question = { ...base, evidence: { overall: "denied", verdicts: [{ claimIndex: 0, verdict: "denied", reason: "My rows say 1000 SEK." }] } };
+    render(<Card q={denied} evaluations={[]} busy={false} onDecide={vi.fn()} />);
+    expect(screen.getByText(/DENIED · My rows say 1000 SEK/)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /approve/i })).toBeNull();
+    expect(screen.getByRole("button", { name: /reject/i })).toBeTruthy();
+  });
+  test("a verified stamp keeps Approve", () => {
+    const ok: Question = { ...base, evidence: { overall: "verified", verdicts: [{ claimIndex: 0, verdict: "verified", reason: "Re-ran it: 1059350.7.", query_execution_id: "qe-2" }] } };
+    render(<Card q={ok} evaluations={[]} busy={false} onDecide={vi.fn()} />);
+    expect(screen.getByText(/VERIFIED · Re-ran it/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /approve/i })).toBeTruthy();
+  });
 });

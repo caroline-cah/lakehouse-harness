@@ -1,0 +1,236 @@
+{
+  "database": "lakehouse_demo",
+  "tables": {
+    "orders": {
+      "description": "One row per customer order.",
+      "grain": "order_id",
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "string",
+          "description": "Order identifier"
+        },
+        {
+          "name": "customer_id",
+          "type": "string",
+          "description": "Customer who placed the order"
+        },
+        {
+          "name": "store_id",
+          "type": "string",
+          "description": "Store that fulfilled the order"
+        },
+        {
+          "name": "order_ts",
+          "type": "string",
+          "description": "Order timestamp",
+          "ISO 8601 UTC; parse with from_iso8601_timestamp(order_ts)": null
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "placed, returned or cancelled"
+        },
+        {
+          "name": "channel",
+          "type": "string",
+          "description": "web or store"
+        }
+      ],
+      "joins": [
+        {
+          "to": "customers",
+          "on": "orders.customer_id = customers.customer_id"
+        },
+        {
+          "to": "stores",
+          "on": "orders.store_id = stores.store_id"
+        }
+      ],
+      "doc": "# Orders\n\nAn order is one checkout, in a store or on the web. A returned order stays in the table with status `returned`;\na cancelled order never shipped and is left out of revenue."
+    },
+    "order_lines": {
+      "description": "One row per product line within an order.",
+      "grain": "order_id + line_no",
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "string",
+          "description": "Order identifier"
+        },
+        {
+          "name": "line_no",
+          "type": "int",
+          "description": "Line number within the order"
+        },
+        {
+          "name": "product_id",
+          "type": "string",
+          "description": "Product sold"
+        },
+        {
+          "name": "qty",
+          "type": "int",
+          "description": "Units sold"
+        },
+        {
+          "name": "unit_price",
+          "type": "double",
+          "description": "Price per unit in SEK"
+        },
+        {
+          "name": "discount",
+          "type": "double",
+          "description": "Discount for the line in SEK"
+        }
+      ],
+      "joins": [
+        {
+          "to": "orders",
+          "on": "order_lines.order_id = orders.order_id"
+        },
+        {
+          "to": "products",
+          "on": "order_lines.product_id = products.product_id"
+        }
+      ],
+      "doc": "# Order lines\n\nWhat was actually sold. Revenue is computed here (`qty * unit_price - discount`), never from list prices."
+    },
+    "products": {
+      "description": "The product catalogue.",
+      "grain": "product_id",
+      "columns": [
+        {
+          "name": "product_id",
+          "type": "string",
+          "description": "Product identifier"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Product name"
+        },
+        {
+          "name": "category",
+          "type": "string",
+          "description": "Category"
+        },
+        {
+          "name": "brand",
+          "type": "string",
+          "description": "Brand"
+        },
+        {
+          "name": "list_price",
+          "type": "double",
+          "description": "List price in SEK"
+        }
+      ],
+      "joins": [],
+      "doc": "# Products\n\nThe catalogue as it is today. There is no cost price, so margin cannot be answered from this model."
+    },
+    "customers": {
+      "description": "Customers. Contact details are personal data and are not available to agents.",
+      "grain": "customer_id",
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "string",
+          "description": "Customer identifier"
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "description": "Email address",
+          "pii": true
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "description": "Phone number",
+          "pii": true
+        },
+        {
+          "name": "city",
+          "type": "string",
+          "description": "City"
+        },
+        {
+          "name": "signup_date",
+          "type": "string",
+          "description": "Sign-up date",
+          "YYYY-MM-DD": null
+        }
+      ],
+      "joins": [
+        {
+          "to": "orders",
+          "on": "customers.customer_id = orders.customer_id"
+        }
+      ],
+      "doc": "# Customers\n\nUse customers to group by city or sign-up cohort. Contact details exist in the source system but are personal\ndata: the agent may say they exist, never read them."
+    },
+    "stores": {
+      "description": "Physical and web stores.",
+      "grain": "store_id",
+      "columns": [
+        {
+          "name": "store_id",
+          "type": "string",
+          "description": "Store identifier"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Store name"
+        },
+        {
+          "name": "city",
+          "type": "string",
+          "description": "City"
+        },
+        {
+          "name": "region",
+          "type": "string",
+          "description": "Sales region"
+        }
+      ],
+      "joins": [
+        {
+          "to": "orders",
+          "on": "stores.store_id = orders.store_id"
+        }
+      ],
+      "doc": "# Stores\n\nEight stores, one per city. Web orders are booked on a store too (see `orders.channel`). Report stores by name, not by id."
+    }
+  },
+  "metrics": {
+    "revenue": {
+      "definition": "Sum of qty * unit_price - discount over order lines of orders whose status is not cancelled. Returned orders count (returns are a separate metric).",
+      "sql": "SUM(l.qty * l.unit_price - l.discount) FROM order_lines l JOIN orders o ON l.order_id = o.order_id WHERE o.status <> 'cancelled'"
+    },
+    "return_rate": {
+      "definition": "Distinct orders with status returned divided by distinct orders not cancelled, in the same period.",
+      "sql": "COUNT(DISTINCT CASE WHEN o.status = 'returned' THEN o.order_id END) * 1.0 / COUNT(DISTINCT CASE WHEN o.status <> 'cancelled' THEN o.order_id END)"
+    },
+    "average_order_value": {
+      "definition": "Revenue divided by the number of distinct non-cancelled orders.",
+      "sql": "revenue / COUNT(DISTINCT o.order_id)"
+    },
+    "week": {
+      "definition": "ISO week (Monday to Sunday) in Europe/Stockholm time.",
+      "sql": "date_trunc('week', from_iso8601_timestamp(o.order_ts) AT TIME ZONE 'Europe/Stockholm')"
+    },
+    "last_week": {
+      "definition": "The most recent complete ISO week before today. On Thursday 29 October 2026 that is week 43, 19 to 25 October.",
+      "sql": "order_ts >= '<monday of last week>T00:00:00Z' AND order_ts < '<monday of this week>T00:00:00Z'"
+    }
+  },
+  "examples": [
+    "What was last week's revenue per store?",
+    "Which five products had the highest return rate last week?",
+    "How did Göteborg's revenue last week compare with the week before?",
+    "What is the average order value by channel this month?",
+    "List the customers who returned items last week with their email addresses."
+  ]
+}

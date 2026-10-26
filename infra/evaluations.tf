@@ -113,10 +113,10 @@ resource "aws_iam_role_policy" "evaluations" {
 }
 
 resource "aws_lambda_permission" "evaluations_invoke" {
-  statement_id  = "AllowAgentCoreEvaluations"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.evaluator.function_name
-  principal     = "bedrock-agentcore.amazonaws.com"
+  statement_id   = "AllowAgentCoreEvaluations"
+  action         = "lambda:InvokeFunction"
+  function_name  = aws_lambda_function.evaluator.function_name
+  principal      = "bedrock-agentcore.amazonaws.com"
   source_account = local.account_id
 }
 
@@ -136,7 +136,7 @@ resource "aws_bedrockagentcore_evaluator" "sql_guard" {
 }
 
 locals {
-  metric_definitions = join("\n", [for name, m in yamldecode(file("${path.module}/../packages/shared/src/data-model.yaml")).metrics : "- ${name}: ${m.definition}"])
+  metric_definitions = join("\n", [for name, m in jsondecode(file("${path.module}/../data-model/data-model.json")).metrics : "- ${name}: ${m.definition}"])
 }
 
 resource "aws_bedrockagentcore_evaluator" "data_model_compliance" {

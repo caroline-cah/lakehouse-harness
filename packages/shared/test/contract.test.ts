@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { GroundedAnswerSchema, parseGroundedAnswer } from "../src/contract.js";
+import { GroundedAnswerSchema, parseEvidenceReview, parseGroundedAnswer, type GroundedAnswer } from "../src/contract.js";
 
 const evidence = {
   id: "q1",
@@ -65,5 +65,25 @@ describe("GroundedAnswerSchema", () => {
     const r = parseGroundedAnswer({ hello: "world" });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.errors[0]).toMatch(/question|claims/);
+  });
+});
+
+describe("parseEvidenceReview", () => {
+  const answer = grounded as GroundedAnswer;
+  test("accepts a reproduced claim", () => {
+    const r = parseEvidenceReview({ verdicts: [{ claimIndex: 0, verdict: "verified", reason: "Re-ran q1, Göteborg 112000.4.", query_execution_id: "def-456" }], overall: "verified" }, answer);
+    expect(r.ok).toBe(true);
+  });
+  test("a verified verdict must cite the query that reproduced it", () => {
+    const r = parseEvidenceReview({ verdicts: [{ claimIndex: 0, verdict: "verified", reason: "Looks right." }], overall: "verified" }, answer);
+    expect(r.ok).toBe(false);
+  });
+  test("overall must be denied when a claim is denied", () => {
+    const r = parseEvidenceReview({ verdicts: [{ claimIndex: 0, verdict: "denied", reason: "No cost column in the data model." }], overall: "verified" }, answer);
+    expect(r.ok).toBe(false);
+  });
+  test("every verified claim gets exactly one verdict", () => {
+    const r = parseEvidenceReview({ verdicts: [], overall: "verified" }, answer);
+    expect(r).toEqual({ ok: false, errors: ["verdicts: expected exactly one verdict for each verified claim index [0], got []."] });
   });
 });

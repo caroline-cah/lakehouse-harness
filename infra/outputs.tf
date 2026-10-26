@@ -13,3 +13,7 @@ output "glue_database" {
 output "lakehouse_reader_role_arn" {
   value = aws_iam_role.lakehouse_reader.arn
 }
+
+output "medallion_job" {
+  value = aws_glue_job.medallion.name
+}

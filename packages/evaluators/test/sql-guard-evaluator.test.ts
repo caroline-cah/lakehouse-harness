@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { evaluateSqlGuard, extractToolCall, findTargetSpan, type EvaluatorEvent, type Span } from "../src/sql-guard-evaluator.js";
+import type { DataModel } from "@lakehouse/shared";
+import { evaluateSqlGuard as evaluateWith, extractToolCall, findTargetSpan, type EvaluatorEvent, type Span } from "../src/sql-guard-evaluator.js";
 
+// Recorded spans query the five-table model, so they are judged against it.
+const model = JSON.parse(readFileSync(new URL("../../shared/test/fixtures/five-table-model.json", import.meta.url), "utf8")) as DataModel;
+const evaluateSqlGuard = (e: EvaluatorEvent) => evaluateWith(e, model);
 const spans = JSON.parse(readFileSync(new URL("./fixtures/session-spans.json", import.meta.url), "utf8")) as Span[];
 const querySpan = spans.find((s) => s.name === "execute_tool lakehouse___query")!;
 const describeSpan = spans.find((s) => s.name === "execute_tool lakehouse___describe_model")!;

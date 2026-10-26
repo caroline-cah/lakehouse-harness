@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { GroundedAnswer } from "@lakehouse/shared";
-import { runWorker } from "../src/worker.js";
+import { answerStep, awaitStep, publishStep, rejectStep, runWorker } from "../src/worker.js";
 import { MemoryStore } from "./memory-store.js";
 
 const answer: GroundedAnswer = {
@@ -67,5 +67,60 @@ describe("review fixes", () => {
   test("a hung agent call fails the card at the deadline", async () => {
     await runWorker({ store, invokeAgent: () => new Promise(() => {}), grounding: ok }, { id: "q-1" }, { deadlineMs: 50 });
     expect(store.items[0]).toMatchObject({ status: "failed", error: expect.stringMatching(/deadline|timed out/i) });
+  });
+});
+
+describe("evidence agent", () => {
+  const verified = { verdicts: [{ claimIndex: 0, verdict: "verified", reason: "Re-ran it.", query_execution_id: "qe2" }], overall: "verified" };
+  test("stores the review next to the answer", async () => {
+    await runWorker({ store, invokeAgent: async () => ({ answer }), grounding: ok, reviewEvidence: async () => ({ review: verified }) }, { id: "q-1" });
+    expect(store.items[0]).toMatchObject({ status: "needs_you", evidence: verified });
+  });
+  test("a denied claim is stored as denied", async () => {
+    const denied = { verdicts: [{ claimIndex: 0, verdict: "denied", reason: "Rows say 1000." }], overall: "denied" };
+    await runWorker({ store, invokeAgent: async () => ({ answer }), grounding: ok, reviewEvidence: async () => ({ review: denied }) }, { id: "q-1" });
+    expect(store.items[0]?.evidence?.overall).toBe("denied");
+  });
+  test("fails closed: a review that breaks its contract denies the answer", async () => {
+    const unproven = { verdicts: [{ claimIndex: 0, verdict: "verified", reason: "Trust me." }], overall: "verified" };
+    await runWorker({ store, invokeAgent: async () => ({ answer }), grounding: ok, reviewEvidence: async () => ({ review: unproven }) }, { id: "q-1" });
+    expect(store.items[0]?.evidence).toMatchObject({ overall: "denied", error: expect.stringContaining("query you ran") });
+  });
+  test("fails closed: a late review denies the answer", async () => {
+    await runWorker({ store, invokeAgent: async () => ({ answer }), grounding: ok, reviewEvidence: () => new Promise(() => undefined) }, { id: "q-1" }, { reviewDeadlineMs: 20 });
+    expect(store.items[0]).toMatchObject({ status: "needs_you", evidence: { overall: "denied" } });
+  });
+  test("a refusal is not reviewed", async () => {
+    let called = false;
+    await runWorker({ store, invokeAgent: async () => ({ refusal: "cannot", errors: [] }), grounding: ok, reviewEvidence: async () => { called = true; return { review: verified }; } }, { id: "q-1" });
+    expect(called).toBe(false);
+  });
+});
+
+describe("state machine steps", () => {
+  test("answerStep routes an answer to grounding, a refusal to the human, a crash to the end", async () => {
+    expect(await answerStep({ store, invokeAgent: async () => ({ answer }), grounding: ok }, "q-1")).toEqual({ next: "ground" });
+    expect(await answerStep({ store, invokeAgent: async () => ({ refusal: "cannot", errors: [] }), grounding: ok }, "q-1")).toEqual({ next: "decide" });
+    expect(await answerStep({ store, invokeAgent: async () => { throw new Error("down"); }, grounding: ok }, "q-1")).toEqual({ next: "end" });
+    expect(store.items[0]).toMatchObject({ status: "failed", error: "down" });
+  });
+  test("awaitStep parks the question for a human with the task token", async () => {
+    await awaitStep({ store, invokeAgent: async () => ({ answer }), grounding: ok }, "q-1", "tok");
+    expect(store.items[0]).toMatchObject({ status: "needs_you", taskToken: "tok" });
+  });
+  test("publishStep posts and marks published", async () => {
+    await store.updateQuestion("q-1", { answer, evidence: { overall: "verified", verdicts: [] } });
+    await publishStep({ store, invokeAgent: async () => ({ answer }), grounding: ok, publish: async () => "https://github.com/x/y/issues/7#c1" }, "q-1");
+    expect(store.items[0]).toMatchObject({ status: "published", publishedUrl: "https://github.com/x/y/issues/7#c1" });
+  });
+  test("publishStep checks again where the comment is posted: a denied answer never goes out", async () => {
+    let posted = false;
+    await store.updateQuestion("q-1", { answer, evidence: { overall: "denied", verdicts: [] } });
+    await expect(publishStep({ store, invokeAgent: async () => ({ answer }), grounding: ok, publish: async () => { posted = true; return "x"; } }, "q-1")).rejects.toThrow(/denied/);
+    expect(posted).toBe(false);
+  });
+  test("rejectStep records the reason", async () => {
+    await rejectStep({ store, invokeAgent: async () => ({ answer }), grounding: ok }, "q-1", "wrong week");
+    expect(store.items[0]).toMatchObject({ status: "rejected", rejectReason: "wrong week" });
   });
 });

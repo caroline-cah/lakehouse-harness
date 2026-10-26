@@ -62,3 +62,46 @@ export function parseGroundedAnswer(json: unknown): ParseResult {
   if (r.success) return { ok: true, answer: r.data };
   return { ok: false, errors: r.error.issues.map((i) => `${i.path.join(".") || "answer"}: ${i.message}`) };
 }
+
+/**
+ * The evidence agent's review: a second agent re-derives every verified claim from the data model on its own and
+ * either reproduces it (with the query that proves it) or denies it. A denied claim blocks Approve.
+ */
+export const VerdictSchema = z.object({
+  claimIndex: z.number().int().nonnegative().describe("Index of the claim in the answer's claims[]"),
+  verdict: z.enum(["verified", "denied"]),
+  reason: z.string().min(1).describe("What you ran and what it returned, or what the data model does not contain"),
+  query_execution_id: z.string().min(1).optional().describe("query_execution_id of the query you ran to check the claim"),
+});
+
+export const EvidenceReviewSchema = z
+  .object({
+    verdicts: z.array(VerdictSchema),
+    overall: z.enum(["verified", "denied"]),
+  })
+  .superRefine((review, ctx) => {
+    review.verdicts.forEach((v, i) => {
+      if (v.verdict === "verified" && !v.query_execution_id) {
+        ctx.addIssue({ code: "custom", path: ["verdicts", i, "query_execution_id"], message: "A verified verdict must cite the query you ran to reproduce the claim." });
+      }
+    });
+    const denied = review.verdicts.some((v) => v.verdict === "denied");
+    if ((review.overall === "denied") !== denied) {
+      ctx.addIssue({ code: "custom", path: ["overall"], message: "overall is denied exactly when at least one verdict is denied." });
+    }
+  });
+
+export type Verdict = z.infer<typeof VerdictSchema>;
+export type EvidenceReview = z.infer<typeof EvidenceReviewSchema>;
+
+/** The review must judge every verified claim of the answer exactly once, and nothing else. */
+export function parseEvidenceReview(json: unknown, answer: GroundedAnswer): { ok: true; review: EvidenceReview } | { ok: false; errors: string[] } {
+  const r = EvidenceReviewSchema.safeParse(json);
+  if (!r.success) return { ok: false, errors: r.error.issues.map((i) => `${i.path.join(".") || "review"}: ${i.message}`) };
+  const expected = answer.claims.flatMap((c, i) => (c.status === "verified" ? [i] : []));
+  const got = r.data.verdicts.map((v) => v.claimIndex).sort((a, b) => a - b);
+  if (JSON.stringify(got) !== JSON.stringify(expected)) {
+    return { ok: false, errors: [`verdicts: expected exactly one verdict for each verified claim index [${expected.join(", ")}], got [${got.join(", ")}].`] };
+  }
+  return { ok: true, review: r.data };
+}

@@ -45,7 +45,7 @@ export function guardSql(rawSql: string, model: DataModel): GuardResult {
     return {
       ok: false,
       rule: "pii_column",
-      message: `customers.${piiHit} is personal data and is not available through this interface. Remove it and answer without contact details.`,
+      message: `${piiHit} is personal data and is not available through this interface. Remove it and answer without contact details.`,
     };
   }
 

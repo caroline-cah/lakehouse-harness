@@ -104,6 +104,20 @@ resource "aws_iam_role_policy" "runtime" {
   policy = data.aws_iam_policy_document.runtime.json
 }
 
+locals {
+  runtime_env = {
+    MODEL_ID                           = var.agent_model_id
+    TOOL_MODE                          = "gateway"
+    GATEWAY_URL                        = aws_bedrockagentcore_gateway.lakehouse.gateway_url
+    COGNITO_TOKEN_URL                  = local.cognito_token_url
+    COGNITO_CLIENT_ID                  = aws_cognito_user_pool_client.agent.id
+    COGNITO_SECRET_PARAM               = aws_ssm_parameter.gateway_client_secret.name
+    TOOLS_FUNCTION_NAME                = aws_lambda_function.tools.function_name
+    UNIFIED_TRACES_DESTINATION_ENABLED = "true"
+    CODE_VERSION                       = filemd5("${path.module}/../packages/agent/.build/agent.zip")
+  }
+}
+
 resource "aws_bedrockagentcore_agent_runtime" "lakehouse" {
   agent_runtime_name = "lakehouse_agent"
   description        = "Grounded lakehouse agent (Strands TS) for the Harness Engineering talks"
@@ -135,17 +149,44 @@ resource "aws_bedrockagentcore_agent_runtime" "lakehouse" {
     max_lifetime                 = 1800
   }
 
-  environment_variables = {
-    MODEL_ID                           = var.agent_model_id
-    TOOL_MODE                          = "gateway"
-    GATEWAY_URL                        = aws_bedrockagentcore_gateway.lakehouse.gateway_url
-    COGNITO_TOKEN_URL                  = local.cognito_token_url
-    COGNITO_CLIENT_ID                  = aws_cognito_user_pool_client.agent.id
-    COGNITO_SECRET_PARAM               = aws_ssm_parameter.gateway_client_secret.name
-    TOOLS_FUNCTION_NAME                = aws_lambda_function.tools.function_name
-    UNIFIED_TRACES_DESTINATION_ENABLED = "true"
-    CODE_VERSION                       = filemd5("${path.module}/../packages/agent/.build/agent.zip")
+  environment_variables = local.runtime_env
+
+  depends_on = [aws_iam_role_policy.runtime]
+}
+
+# Same code, other role: re-derives every verified claim from the data model, or denies it.
+resource "aws_bedrockagentcore_agent_runtime" "evidence" {
+  agent_runtime_name = "lakehouse_evidence_agent"
+  description        = "Evidence agent: verifies or denies each claim of the lakehouse agent"
+  role_arn           = aws_iam_role.runtime.arn
+
+  agent_runtime_artifact {
+    code_configuration {
+      code {
+        s3 {
+          bucket = aws_s3_bucket.code.bucket
+          prefix = aws_s3_object.agent_zip.key
+        }
+      }
+      runtime     = "NODE_22"
+      entry_point = ["opentelemetry-instrument", "dist/app.js"]
+    }
   }
+
+  network_configuration {
+    network_mode = "PUBLIC"
+  }
+
+  protocol_configuration {
+    server_protocol = "HTTP"
+  }
+
+  lifecycle_configuration {
+    idle_runtime_session_timeout = 300
+    max_lifetime                 = 1800
+  }
+
+  environment_variables = merge(local.runtime_env, { AGENT_ROLE = "evidence" })
 
   depends_on = [aws_iam_role_policy.runtime]
 }
@@ -160,4 +201,12 @@ output "agent_runtime_id" {
 
 output "agent_log_group" {
   value = "/aws/bedrock-agentcore/runtimes/${aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_id}-DEFAULT"
+}
+
+output "evidence_runtime_arn" {
+  value = aws_bedrockagentcore_agent_runtime.evidence.agent_runtime_arn
+}
+
+output "evidence_log_group" {
+  value = "/aws/bedrock-agentcore/runtimes/${aws_bedrockagentcore_agent_runtime.evidence.agent_runtime_id}-DEFAULT"
 }

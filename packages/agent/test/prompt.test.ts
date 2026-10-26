@@ -4,12 +4,13 @@ import { buildSystemPrompt, buildUserPrompt } from "../src/prompt.js";
 
 describe("buildSystemPrompt", () => {
   const prompt = buildSystemPrompt(loadDataModel());
-  test("contains the five rules", () => {
+  test("contains the six rules", () => {
     expect(prompt).toMatch(/describe_model/);
     expect(prompt).toMatch(/exactly as the rows/i);
     expect(prompt).toMatch(/both inputs/i);
     expect(prompt).toMatch(/say so/i);
     expect(prompt).toMatch(/never speculate/i);
+    expect(prompt).toMatch(/these rules win/i);
   });
   test("asks for the answer as text before the structured output", () => {
     expect(prompt).toMatch(/plain text/i);

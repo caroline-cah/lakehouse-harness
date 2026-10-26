@@ -12,4 +12,9 @@ data/
 coverage/
 out.json
 docs/
-talk/
+talk/golden-results.md
+talk/.venv/
+__pycache__/
+.DS_Store
+talk/.render/
+~$*

@@ -1,8 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { loadDataModel } from "../src/data-model.js";
+import { readFileSync } from "node:fs";
+import type { DataModel } from "../src/data-model.js";
 import { guardSql } from "../src/sql-guard.js";
 
-const model = loadDataModel();
+// The guard is tested against a frozen five-table model (with PII columns), independent of what data-model/ holds today.
+const model = JSON.parse(readFileSync(new URL("./fixtures/five-table-model.json", import.meta.url), "utf8")) as DataModel;
 const ok = (sql: string) => {
   const r = guardSql(sql, model);
   if (!r.ok) throw new Error(`expected ok, got ${r.rule}: ${r.message}`);

@@ -1,8 +1,7 @@
-import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import { SendTaskSuccessCommand, SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
 import { createAdapter } from "./adapter.js";
 import { listEvaluations } from "./evaluations.js";
-import { createGithubPublisher } from "./github.js";
 import { createDynamoStore } from "./store.js";
 
 const env = (k: string): string => {
@@ -11,15 +10,17 @@ const env = (k: string): string => {
   return v;
 };
 const region = process.env.AWS_REGION ?? "eu-central-1";
-const lambda = new LambdaClient({ region });
+const sfn = new SFNClient({ region });
 const logs = new CloudWatchLogsClient({ region });
 
 export const handler = createAdapter({
   store: createDynamoStore(env("QUESTIONS_TABLE")),
   boardToken: env("BOARD_TOKEN"),
-  invokeWorker: async (id) => {
-    await lambda.send(new InvokeCommand({ FunctionName: env("WORKER_FUNCTION_NAME"), InvocationType: "Event", Payload: Buffer.from(JSON.stringify({ id })) }));
+  startWorkflow: async (id) => {
+    await sfn.send(new StartExecutionCommand({ stateMachineArn: env("STATE_MACHINE_ARN"), name: id, input: JSON.stringify({ id }) }));
   },
-  publish: createGithubPublisher({ issue: env("GITHUB_ISSUE"), patParam: env("GITHUB_PAT_PARAM"), region }),
+  resume: async (taskToken, decision) => {
+    await sfn.send(new SendTaskSuccessCommand({ taskToken, output: JSON.stringify(decision) }));
+  },
   listEvaluations: (id) => listEvaluations({ logs, logGroup: process.env.EVAL_RESULTS_LOG_GROUP ?? "" }, id),
 });

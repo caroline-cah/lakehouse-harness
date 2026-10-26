@@ -5,8 +5,10 @@ export interface GroundedAnswer { question: string; claims: Claim[]; evidence: E
 export type QuestionStatus = "asked" | "working" | "needs_you" | "published" | "rejected" | "failed";
 export type ContractVerdict = { valid: true; answer: GroundedAnswer } | { valid: false; errors: string[] };
 export interface GroundingVerdict { grounding: number; relevance: number; passed: boolean; action: "NONE" | "GUARDRAIL_INTERVENED" | "SKIPPED"; automatedReasoning?: unknown }
+export interface Verdict { claimIndex: number; verdict: "verified" | "denied"; reason: string; query_execution_id?: string }
+export interface EvidenceVerdict { verdicts: Verdict[]; overall: "verified" | "denied"; error?: string }
 export interface Question {
   id: string; name: string; question: string; publish: boolean; status: QuestionStatus; createdAt: string; updatedAt: string;
-  answer?: GroundedAnswer; contract?: ContractVerdict; grounding?: GroundingVerdict; error?: string; publishedUrl?: string; rejectReason?: string; agentSeconds?: number;
+  answer?: GroundedAnswer; contract?: ContractVerdict; grounding?: GroundingVerdict; evidence?: EvidenceVerdict; error?: string; publishedUrl?: string; rejectReason?: string; agentSeconds?: number;
 }
 export interface EvalResult { evaluator: string; label: string; value?: number; explanation?: string; at: string }

@@ -108,12 +108,13 @@ data "aws_iam_policy_document" "adapter" {
     resources = [aws_dynamodb_table.questions.arn, "${aws_dynamodb_table.questions.arn}/index/*"]
   }
   statement {
-    actions   = ["lambda:InvokeFunction"]
-    resources = [aws_lambda_function.worker.arn]
+    actions   = ["states:StartExecution"]
+    resources = [aws_sfn_state_machine.workflow.arn]
   }
+  # Task-token callbacks have no resource to scope to; the token itself is the capability, and the board never sees it.
   statement {
-    actions   = ["ssm:GetParameter"]
-    resources = [aws_ssm_parameter.github_pat.arn]
+    actions   = ["states:SendTaskSuccess"]
+    resources = ["*"]
   }
   statement {
     actions   = ["logs:FilterLogEvents", "logs:StartQuery", "logs:GetQueryResults"]
@@ -131,12 +132,19 @@ data "aws_iam_policy_document" "worker" {
     resources = [aws_dynamodb_table.questions.arn, "${aws_dynamodb_table.questions.arn}/index/*"]
   }
   statement {
-    actions   = ["bedrock-agentcore:InvokeAgentRuntime"]
-    resources = [aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_arn, "${aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_arn}/*"]
+    actions = ["bedrock-agentcore:InvokeAgentRuntime"]
+    resources = [
+      aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_arn, "${aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_arn}/*",
+      aws_bedrockagentcore_agent_runtime.evidence.agent_runtime_arn, "${aws_bedrockagentcore_agent_runtime.evidence.agent_runtime_arn}/*",
+    ]
   }
   statement {
     actions   = ["bedrock:ApplyGuardrail"]
     resources = [aws_bedrock_guardrail.grounding.guardrail_arn]
+  }
+  statement {
+    actions   = ["ssm:GetParameter"]
+    resources = [aws_ssm_parameter.github_pat.arn]
   }
   statement {
     actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
@@ -162,28 +170,25 @@ resource "aws_lambda_function" "worker" {
   runtime          = "nodejs22.x"
   architectures    = ["arm64"]
   handler          = "lambda-worker.handler"
-  timeout          = 180
+  timeout          = 300
   memory_size      = 512
   filename         = data.archive_file.worker.output_path
   source_code_hash = data.archive_file.worker.output_base64sha256
 
   environment {
     variables = {
-      QUESTIONS_TABLE   = aws_dynamodb_table.questions.name
-      AGENT_RUNTIME_ARN = aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_arn
-      GUARDRAIL_ID      = aws_bedrock_guardrail.grounding.guardrail_id
-      GUARDRAIL_VERSION = aws_bedrock_guardrail_version.grounding.version
-      GROUNDING_THRESHOLD = tostring(var.grounding_threshold)
+      QUESTIONS_TABLE      = aws_dynamodb_table.questions.name
+      AGENT_RUNTIME_ARN    = aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_arn
+      EVIDENCE_RUNTIME_ARN = aws_bedrockagentcore_agent_runtime.evidence.agent_runtime_arn
+      GUARDRAIL_ID         = aws_bedrock_guardrail.grounding.guardrail_id
+      GUARDRAIL_VERSION    = aws_bedrock_guardrail_version.grounding.version
+      GROUNDING_THRESHOLD  = tostring(var.grounding_threshold)
+      GITHUB_ISSUE         = var.github_issue
+      GITHUB_PAT_PARAM     = aws_ssm_parameter.github_pat.name
     }
   }
 
   depends_on = [aws_cloudwatch_log_group.worker, aws_iam_role_policy.worker]
-}
-
-# A retry would post a second answer; the board shows a stuck card instead.
-resource "aws_lambda_function_event_invoke_config" "worker" {
-  function_name          = aws_lambda_function.worker.function_name
-  maximum_retry_attempts = 0
 }
 
 resource "aws_lambda_function" "adapter" {
@@ -200,10 +205,8 @@ resource "aws_lambda_function" "adapter" {
   environment {
     variables = {
       QUESTIONS_TABLE        = aws_dynamodb_table.questions.name
-      WORKER_FUNCTION_NAME   = aws_lambda_function.worker.function_name
+      STATE_MACHINE_ARN      = aws_sfn_state_machine.workflow.arn
       BOARD_TOKEN            = random_password.board_token.result
-      GITHUB_ISSUE           = var.github_issue
-      GITHUB_PAT_PARAM       = aws_ssm_parameter.github_pat.name
       EVAL_RESULTS_LOG_GROUP = "/aws/bedrock-agentcore/evaluations/results/${aws_bedrockagentcore_online_evaluation_config.online.online_evaluation_config_id}"
     }
   }

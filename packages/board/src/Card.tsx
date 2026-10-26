@@ -12,7 +12,8 @@ interface Props {
 export function Card({ q, evaluations, busy, onDecide }: Props) {
   const [showSql, setShowSql] = useState<string | null>(null);
   const a = q.answer;
-  const canApprove = q.status === "needs_you" && !!a && a.summary.trim() !== "" && q.publish;
+  const denied = q.evidence?.overall === "denied";
+  const canApprove = q.status === "needs_you" && !!a && a.summary.trim() !== "" && q.publish && !denied;
   return (
     <article className={`card status-${q.status} ${busy ? "busy" : ""}`}>
       <header className="card-head">
@@ -31,24 +32,34 @@ export function Card({ q, evaluations, busy, onDecide }: Props) {
           ))}
           {a.claims.length > 0 ? (
             <ul className="claims">
-              {a.claims.map((c, i) => (
-                <li key={i} className={c.status}>
-                  <span className="mark">{c.status === "verified" ? "✅" : "❔"}</span> {c.statement}
-                  {c.evidenceIds.map((id) => {
-                    const e = a.evidence.find((x) => x.id === id);
-                    return (
-                      <button key={id} className="chip" type="button" onClick={() => setShowSql(showSql === id ? null : id)} title={e?.query_execution_id}>
-                        {id}{e ? ` · ${e.row_count} rows` : ""}
-                      </button>
-                    );
-                  })}
-                </li>
-              ))}
+              {a.claims.map((c, i) => {
+                const v = q.evidence?.verdicts.find((x) => x.claimIndex === i);
+                return (
+                  <li key={i} className={c.status}>
+                    <span className="mark">{c.status === "verified" ? "✅" : "❔"}</span> {c.statement}
+                    {c.evidenceIds.map((id) => {
+                      const e = a.evidence.find((x) => x.id === id);
+                      return (
+                        <button key={id} className="chip" type="button" onClick={() => setShowSql(showSql === id ? null : id)} title={e?.query_execution_id}>
+                          {id}{e ? ` · ${e.row_count} rows` : ""}
+                        </button>
+                      );
+                    })}
+                    {v ? (
+                      <p className={`stamp ${v.verdict}`} title={v.query_execution_id}>
+                        {v.verdict === "verified" ? "VERIFIED" : "DENIED"} · {v.reason}
+                      </p>
+                    ) : null}
+                  </li>
+                );
+              })}
             </ul>
           ) : null}
           {showSql ? <pre className="sql">{a.evidence.find((e) => e.id === showSql)?.sql}</pre> : null}
         </div>
       ) : null}
+
+      {q.evidence?.error ? <p className="stamp denied">DENIED · The evidence agent could not review this answer: {q.evidence.error}</p> : null}
 
       {q.status === "failed" ? <p className="error">{q.error}</p> : null}
       {q.status === "published" && q.publishedUrl ? (
@@ -71,6 +82,7 @@ export function Card({ q, evaluations, busy, onDecide }: Props) {
             Reject
           </button>
           {!q.publish && a?.summary ? <span className="hint">Asker opted out of posting</span> : null}
+          {denied ? <span className="hint">Denied by the evidence agent</span> : null}
         </div>
       ) : null}
     </article>

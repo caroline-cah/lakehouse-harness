@@ -1,8 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { loadDataModel } from "@lakehouse/shared";
+import { readFileSync } from "node:fs";
+import type { DataModel } from "@lakehouse/shared";
 import { handleTool, toolNameFromContext, type AthenaRunner } from "../src/tools.js";
 
-const model = loadDataModel();
+const model = JSON.parse(readFileSync(new URL("../../shared/test/fixtures/five-table-model.json", import.meta.url), "utf8")) as DataModel;
 
 function fakeAthena(): AthenaRunner & { calls: string[] } {
   const calls: string[] = [];

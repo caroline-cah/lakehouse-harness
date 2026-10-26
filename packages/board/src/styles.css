@@ -326,6 +326,8 @@ textarea.args { min-height: 120px; resize: vertical; }
 .claims{list-style:none;padding:0;margin:6px 0}
 .claims li{margin:4px 0;font-size:.92rem}
 .claims .mark{margin-right:4px}
+.stamp{margin:4px 0 0 22px;font-size:.8rem;font-weight:600;letter-spacing:.02em}
+.stamp.verified{color:#34d399}.stamp.denied{color:#fb7185}
 .chip{font:inherit;font-size:.78rem;margin-left:6px;padding:1px 8px;border-radius:999px;border:1px solid #3b5f56;background:#0f2a24;color:#a9d6c7;cursor:pointer}
 .sql{white-space:pre-wrap;font-size:.75rem;background:#06110e;padding:8px;border-radius:8px;max-height:140px;overflow:auto}
 .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}

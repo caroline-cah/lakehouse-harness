@@ -1,23 +1,25 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { APIGatewayProxyEventV2 } from "aws-lambda";
-import { createAdapter } from "../src/adapter.js";
+import { createAdapter, type Decision } from "../src/adapter.js";
 import { MemoryStore } from "./memory-store.js";
 
 const TOKEN = "board-secret";
 let store: MemoryStore;
 let invoked: { id: string }[];
+let resumed: { token: string; decision: Decision }[];
 let evals: Record<string, unknown[]>;
 let handler: ReturnType<typeof createAdapter>;
 
 beforeEach(() => {
   store = new MemoryStore();
   invoked = [];
+  resumed = [];
   evals = {};
   handler = createAdapter({
     store,
     boardToken: TOKEN,
-    invokeWorker: async (id) => void invoked.push({ id }),
-    publish: async (q) => `https://github.com/caroline-cah/pizza-crew-demo/issues/7#issuecomment-${q.id.slice(0, 6)}`,
+    startWorkflow: async (id) => void invoked.push({ id }),
+    resume: async (token, decision) => void resumed.push({ token, decision }),
     listEvaluations: async (id) => (evals[id] ?? []) as never,
   });
 });
@@ -45,7 +47,7 @@ describe("adapter", () => {
     expect(r.statusCode).toBe(400);
     expect(invoked).toHaveLength(0);
   });
-  test("adapter stores the question and invokes worker once", async () => {
+  test("adapter stores the question and starts the workflow once", async () => {
     const r = await handler(req("POST", "/questions", { name: "Ida", question: "Revenue last week?", publish: true }));
     expect(r.statusCode).toBe(201);
     const { id } = JSON.parse(String(r.body)) as { id: string };
@@ -68,21 +70,36 @@ describe("adapter", () => {
     expect((await handler(req("GET", "/questions"))).statusCode).toBe(401);
     expect((await handler(req("GET", "/questions", undefined, { "x-board-token": TOKEN }))).statusCode).toBe(200);
   });
-  test("publish posts and marks published", async () => {
+  test("Approve hands the decision back to the waiting workflow", async () => {
     await handler(req("POST", "/questions", { name: "Ida", question: "Q", publish: true }));
     const q = store.items[0]!;
-    await store.updateQuestion(q.id, { status: "needs_you", answer: { question: "Q", claims: [], evidence: [], summary: "S", refusals: [] } });
+    await store.updateQuestion(q.id, { status: "needs_you", taskToken: "tok-1", answer: { question: "Q", claims: [], evidence: [], summary: "S", refusals: [] } });
     const r = await handler(req("POST", `/questions/${q.id}/publish`, undefined, { "x-board-token": TOKEN }));
-    expect(r.statusCode).toBe(200);
-    expect(store.items[0]).toMatchObject({ status: "published", publishedUrl: expect.stringContaining("issuecomment") });
+    expect(r.statusCode).toBe(202);
+    expect(resumed).toEqual([{ token: "tok-1", decision: { decision: "publish" } }]);
+    expect(JSON.parse(String(r.body))).not.toHaveProperty("taskToken");
   });
-  test("reject marks rejected without publishing", async () => {
-    await handler(req("POST", "/questions", { name: "Ida", question: "Q" }));
+  test("Approve without a waiting workflow is refused", async () => {
+    await handler(req("POST", "/questions", { name: "Ida", question: "Q", publish: true }));
     const q = store.items[0]!;
     await store.updateQuestion(q.id, { status: "needs_you" });
+    const r = await handler(req("POST", `/questions/${q.id}/publish`, undefined, { "x-board-token": TOKEN }));
+    expect(r.statusCode).toBe(409);
+    expect(resumed).toHaveLength(0);
+  });
+  test("the board never sees the task token", async () => {
+    await handler(req("POST", "/questions", { name: "Ida", question: "Q" }));
+    await store.updateQuestion(store.items[0]!.id, { taskToken: "tok-secret" });
+    const r = await handler(req("GET", "/questions", undefined, { "x-board-token": TOKEN }));
+    expect(String(r.body)).not.toContain("tok-secret");
+  });
+  test("Reject hands the reason back to the workflow", async () => {
+    await handler(req("POST", "/questions", { name: "Ida", question: "Q" }));
+    const q = store.items[0]!;
+    await store.updateQuestion(q.id, { status: "needs_you", taskToken: "tok-2" });
     const r = await handler(req("POST", `/questions/${q.id}/reject`, { reason: "wrong week" }, { "x-board-token": TOKEN }));
-    expect(r.statusCode).toBe(200);
-    expect(store.items[0]).toMatchObject({ status: "rejected" });
+    expect(r.statusCode).toBe(202);
+    expect(resumed).toEqual([{ token: "tok-2", decision: { decision: "reject", reason: "wrong week" } }]);
   });
   test("evaluations endpoint returns what the lister returns", async () => {
     await handler(req("POST", "/questions", { name: "Ida", question: "Q" }));
@@ -101,6 +118,15 @@ describe("adapter publish consent", () => {
     const r = await handler(req("POST", `/questions/${q.id}/publish`, undefined, { "x-board-token": TOKEN }));
     expect(r.statusCode).toBe(409);
     expect(store.items[0]?.status).toBe("needs_you");
+  });
+  test("publish refused when the evidence agent denied the answer", async () => {
+    await handler(req("POST", "/questions", { name: "Ida", question: "Q", publish: true }));
+    const q = store.items[0]!;
+    await store.updateQuestion(q.id, { status: "needs_you", taskToken: "tok-3", evidence: { overall: "denied", verdicts: [{ claimIndex: 0, verdict: "denied", reason: "No cost column." }] } });
+    const r = await handler(req("POST", `/questions/${q.id}/publish`, undefined, { "x-board-token": TOKEN }));
+    expect(r.statusCode).toBe(409);
+    expect(store.items[0]?.status).toBe("needs_you");
+    expect(resumed).toHaveLength(0);
   });
 });
 
