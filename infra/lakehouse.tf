@@ -123,14 +123,21 @@ resource "aws_glue_job" "medallion" {
   }
 
   default_arguments = {
-    "--datalake-formats" = "iceberg"
-    "--BUCKET"           = aws_s3_bucket.lakehouse.bucket
-    "--DATA_MODEL_KEY"   = aws_s3_object.data_model.key
+    "--datalake-formats"        = "iceberg"
+    "--enable-glue-datacatalog" = "true"
+    "--BUCKET"                  = aws_s3_bucket.lakehouse.bucket
+    "--DATA_MODEL_KEY"          = aws_s3_object.data_model.key
+    # As in the Glue materialized views guide: without glue.region / glue.id / glue.account-id the view's source-table
+    # references are stored with an empty region and catalog, and CREATE MATERIALIZED VIEW fails.
     "--conf" = join(" --conf ", [
       "spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",
       "spark.sql.catalog.glue_catalog=org.apache.iceberg.spark.SparkCatalog",
       "spark.sql.catalog.glue_catalog.type=glue",
       "spark.sql.catalog.glue_catalog.warehouse=s3://${aws_s3_bucket.lakehouse.bucket}/warehouse/",
+      "spark.sql.catalog.glue_catalog.glue.region=${local.region}",
+      "spark.sql.catalog.glue_catalog.glue.id=${local.account_id}",
+      "spark.sql.catalog.glue_catalog.glue.account-id=${local.account_id}",
+      "spark.sql.defaultCatalog=glue_catalog",
       "spark.sql.optimizer.incrementalMVRefresh.enabled=true",
     ])
   }

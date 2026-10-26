@@ -8,6 +8,7 @@ infra/.terraform/
 infra/*.tfstate
 infra/*.tfstate.backup
 infra/*.tfplan
+infra/tfplan
 data/
 coverage/
 out.json

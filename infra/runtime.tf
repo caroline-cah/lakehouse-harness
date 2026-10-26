@@ -191,6 +191,14 @@ resource "aws_bedrockagentcore_agent_runtime" "evidence" {
   depends_on = [aws_iam_role_policy.runtime]
 }
 
+# AgentCore creates a runtime's log group on its first invocation. Create it up front instead, so the online
+# evaluation config (which must name an existing log group) can be created in the same apply, and retention is set.
+resource "aws_cloudwatch_log_group" "runtime" {
+  for_each          = { lakehouse = aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_id, evidence = aws_bedrockagentcore_agent_runtime.evidence.agent_runtime_id }
+  name              = "/aws/bedrock-agentcore/runtimes/${each.value}-DEFAULT"
+  retention_in_days = 14
+}
+
 output "agent_runtime_arn" {
   value = aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_arn
 }
@@ -200,7 +208,7 @@ output "agent_runtime_id" {
 }
 
 output "agent_log_group" {
-  value = "/aws/bedrock-agentcore/runtimes/${aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_id}-DEFAULT"
+  value = aws_cloudwatch_log_group.runtime["lakehouse"].name
 }
 
 output "evidence_runtime_arn" {
@@ -208,5 +216,5 @@ output "evidence_runtime_arn" {
 }
 
 output "evidence_log_group" {
-  value = "/aws/bedrock-agentcore/runtimes/${aws_bedrockagentcore_agent_runtime.evidence.agent_runtime_id}-DEFAULT"
+  value = aws_cloudwatch_log_group.runtime["evidence"].name
 }

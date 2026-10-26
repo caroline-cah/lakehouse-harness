@@ -260,7 +260,7 @@ resource "aws_bedrockagentcore_online_evaluation_config" "online" {
 
   data_source_config {
     cloudwatch_logs {
-      log_group_names = ["/aws/bedrock-agentcore/runtimes/${aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_id}-DEFAULT"]
+      log_group_names = [aws_cloudwatch_log_group.runtime["lakehouse"].name]
       service_names   = ["lakehouse_agent.DEFAULT"]
     }
   }
