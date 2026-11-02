@@ -200,6 +200,28 @@ resource "aws_cloudwatch_log_group" "runtime" {
   retention_in_days = 14
 }
 
+# With UNIFIED_TRACES_DESTINATION_ENABLED, X-Ray Transaction Search delivers the runtime's spans into its own log group
+# (log stream `spans`). That needs a log-group-scoped resource policy. AgentCore writes it when it creates the log group
+# itself (hence logs:PutResourcePolicy in the runtime role); since the group is created here, the policy lives here too.
+resource "aws_cloudwatch_log_resource_policy" "runtime_spans" {
+  for_each     = aws_cloudwatch_log_group.runtime
+  resource_arn = each.value.arn
+  policy_document = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "XRayTransactionSearchAccess"
+      Effect    = "Allow"
+      Principal = { Service = "xray.amazonaws.com" }
+      Action    = "logs:PutLogEvents"
+      Resource  = "${each.value.arn}:*"
+      Condition = {
+        ArnLike      = { "aws:SourceArn" = "arn:${local.partition}:xray:${local.region}:${local.account_id}:*" }
+        StringEquals = { "aws:SourceAccount" = local.account_id }
+      }
+    }]
+  })
+}
+
 output "agent_runtime_arn" {
   value = aws_bedrockagentcore_agent_runtime.lakehouse.agent_runtime_arn
 }

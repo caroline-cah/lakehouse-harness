@@ -35,6 +35,15 @@ export function traceHeaders(now: number = Date.now()): { traceParent: string; t
 const empty = (question: string, refusal: string): GroundedAnswer => ({ question, claims: [], evidence: [], summary: "", refusals: [refusal] });
 
 /**
+ * The runtime was throttled by Bedrock (the account's requests-per-minute quota). Thrown by name so the state machine
+ * (infra/workflow.tf) retries the step with backoff instead of failing or denying the card on the first attempt.
+ */
+export class AgentThrottled extends Error {
+  override name = "AgentThrottled";
+}
+const isThrottle = (message: string) => /too many requests|throttl|rate exceeded/i.test(message);
+
+/**
  * The slow path, as steps of the Step Functions state machine in infra/workflow.tf: answer, ground, verify, wait for a
  * human, publish or reject. Each step reads and writes the question in DynamoDB; only the id travels between states.
  * The in-step deadlines sit under the state timeouts, so a hung agent call lands as `failed` or `denied`, not as a timeout.
@@ -55,10 +64,15 @@ async function review(deps: WorkerDeps, id: string, question: string, answer: Gr
       deps.reviewEvidence(id, question, answer),
       new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(`The evidence agent did not answer within ${Math.round(deadlineMs / 1000)} s.`)), deadlineMs); }),
     ]);
-    if ("refusal" in res) return denied(res.errors.join("; ") || res.refusal);
+    if ("refusal" in res) {
+      const message = res.errors.join("; ") || res.refusal;
+      if (res.failed && isThrottle(message)) throw new AgentThrottled(message);
+      return denied(message);
+    }
     const parsed = parseEvidenceReview(res.review, answer);
     return parsed.ok ? parsed.review : denied(`Review violated its contract: ${parsed.errors.join("; ")}`);
   } catch (err) {
+    if (err instanceof AgentThrottled) throw err;
     return denied(err instanceof Error ? err.message : String(err));
   } finally {
     if (timer) clearTimeout(timer);
@@ -91,8 +105,10 @@ export async function answerStep(deps: WorkerDeps, id: string, opts: StepOptions
     const agentSeconds = Math.round((Date.now() - started) / 10) / 100;
     if ("refusal" in res) {
       if (res.failed) {
-        // The runtime crashed (token, Bedrock, Gateway): not an answer, not a refusal.
-        await deps.store.updateQuestion(q.id, { status: "failed", error: res.errors.join("; ") || res.refusal, agentSeconds });
+        // The runtime crashed (token, Bedrock, Gateway): not an answer, not a refusal. A throttle is retried by the state machine.
+        const message = res.errors.join("; ") || res.refusal;
+        if (isThrottle(message)) throw new AgentThrottled(message);
+        await deps.store.updateQuestion(q.id, { status: "failed", error: message, agentSeconds });
         return { next: "end" };
       }
       const isContractExhaustion = /evidence contract/i.test(res.refusal) && res.errors.length > 0;
@@ -114,6 +130,7 @@ export async function answerStep(deps: WorkerDeps, id: string, opts: StepOptions
     await deps.store.updateQuestion(q.id, { answer: contract.answer, contract: { valid: true, answer: contract.answer }, agentSeconds });
     return { next: "ground" };
   } catch (err) {
+    if (err instanceof AgentThrottled) throw err;
     await failStep(deps, q.id, err instanceof Error ? err.message : String(err));
     return { next: "end" };
   } finally {

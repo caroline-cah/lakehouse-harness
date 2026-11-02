@@ -4,6 +4,10 @@ Three demos, each with a fallback. Region `eu-central-1`. Run everything from th
 
 ## The day before
 
+- [ ] Bedrock quota. This account has 10 requests per minute for Claude Sonnet 4.6 (`aws service-quotas get-service-quota
+      --service-code bedrock --quota-code L-00FF3314`). One question is about ten model calls across both agents, so a room
+      asking at once throttles; the workflow retries a throttled step three times (20, 40, 80 s) before it fails or denies.
+      Request an account-level increase in the Service Quotas console well before the talk.
 - [ ] `pnpm install && pnpm test`: green.
 - [ ] `pnpm -r build && packages/agent/scripts/build.sh && terraform -chdir=infra apply`. This deploys both runtimes:
       `lakehouse_agent` and `lakehouse_evidence_agent`.

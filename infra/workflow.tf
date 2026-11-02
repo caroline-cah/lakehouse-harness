@@ -9,7 +9,10 @@ locals {
     MaxAttempts     = 2
     BackoffRate     = 2
   }]
-  to_failure = [{ ErrorEquals = ["States.ALL"], ResultPath = "$.error", Next = "RecordFailure" }]
+  # A Bedrock throttle inside the runtime (the account's requests-per-minute quota) is worth waiting for: three more
+  # attempts, 20 s, 40 s, 80 s apart, before the step counts as failed (Answer) or denied (Verify).
+  throttle_retry = [{ ErrorEquals = ["AgentThrottled"], IntervalSeconds = 20, MaxAttempts = 3, BackoffRate = 2 }]
+  to_failure     = [{ ErrorEquals = ["States.ALL"], ResultPath = "$.error", Next = "RecordFailure" }]
 
   step = { for action in ["answer", "ground", "verify", "publish"] : action => {
     Type       = "Task"
@@ -25,7 +28,7 @@ locals {
         TimeoutSeconds = 240
         ResultSelector = { "next.$" = "$.Payload.next" }
         ResultPath     = "$.answer"
-        Retry          = local.lambda_retry
+        Retry          = concat(local.throttle_retry, local.lambda_retry)
         Catch          = local.to_failure
         Next           = "Route"
       })
@@ -47,7 +50,7 @@ locals {
       Verify = merge(local.step.verify, {
         TimeoutSeconds = 240
         ResultPath     = null
-        Retry          = local.lambda_retry
+        Retry          = concat(local.throttle_retry, local.lambda_retry)
         Catch          = [{ ErrorEquals = ["States.ALL"], ResultPath = "$.error", Next = "DenyUnverified" }]
         Next           = "WaitForDecision"
       })

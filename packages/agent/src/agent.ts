@@ -23,7 +23,8 @@ const defaultSkillsDir = () => join(dirname(process.argv[1] ?? "."), "..", "skil
 /** One agent per invocation: the AgentCore session is the question, so no conversation state needs to survive. */
 export function buildAgent(opts: BuildAgentOptions): Agent {
   return new Agent({
-    model: new BedrockModel({ modelId: opts.modelId, region: opts.region }),
+    // Adaptive retries: a throttled Bedrock call backs off and retries inside the invocation instead of failing the card.
+    model: new BedrockModel({ modelId: opts.modelId, region: opts.region, clientConfig: { maxAttempts: 10, retryMode: "adaptive" } }),
     systemPrompt: opts.role === "evidence" ? buildEvidenceSystemPrompt(loadDataModel()) : buildSystemPrompt(loadDataModel()),
     tools: opts.tools,
     plugins: [new AgentSkills({ skills: [join(opts.skillsDir ?? defaultSkillsDir(), "aws")] })],

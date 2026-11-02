@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import type { GroundedAnswer } from "@lakehouse/shared";
-import { answerStep, awaitStep, publishStep, rejectStep, runWorker } from "../src/worker.js";
+import { AgentThrottled, answerStep, awaitStep, publishStep, rejectStep, runWorker, verifyStep } from "../src/worker.js";
 import { MemoryStore } from "./memory-store.js";
 
 const answer: GroundedAnswer = {
@@ -67,6 +67,23 @@ describe("review fixes", () => {
   test("a hung agent call fails the card at the deadline", async () => {
     await runWorker({ store, invokeAgent: () => new Promise(() => {}), grounding: ok }, { id: "q-1" }, { deadlineMs: 50 });
     expect(store.items[0]).toMatchObject({ status: "failed", error: expect.stringMatching(/deadline|timed out/i) });
+  });
+});
+
+describe("throttling", () => {
+  const throttled = { refusal: "The agent failed before producing an answer.", errors: ["Too many requests, please wait before trying again."], failed: true };
+  test("a throttled analyst throws AgentThrottled so the state machine retries instead of failing the card", async () => {
+    await expect(answerStep({ store, invokeAgent: async () => throttled, grounding: ok }, "q-1")).rejects.toBeInstanceOf(AgentThrottled);
+    expect(store.items[0]?.status).toBe("working");
+  });
+  test("a throttled evidence agent throws AgentThrottled instead of denying on the first attempt", async () => {
+    await store.updateQuestion("q-1", { answer });
+    await expect(verifyStep({ store, invokeAgent: async () => ({ answer }), grounding: ok, reviewEvidence: async () => throttled }, "q-1")).rejects.toBeInstanceOf(AgentThrottled);
+    expect(store.items[0]?.evidence).toBeUndefined();
+  });
+  test("any other runtime failure still fails the card", async () => {
+    await runWorker({ store, invokeAgent: async () => ({ ...throttled, errors: ["Gateway 502"] }), grounding: ok }, { id: "q-1" });
+    expect(store.items[0]).toMatchObject({ status: "failed", error: "Gateway 502" });
   });
 });
 
