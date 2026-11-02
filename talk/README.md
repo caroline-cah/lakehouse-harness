@@ -31,6 +31,7 @@ deny it, and nothing an agent does reaches a human, or main, without being check
 | [`harness-engineering-live.pptx`](harness-engineering-live.pptx) | The deck, generated, on the AWS Dev Day theme |
 | [`build_deck.py`](build_deck.py) | Builds the deck from the outline and the theme |
 | [`demo-runbook.md`](demo-runbook.md) | What to do the day before, the hour before and on stage, with fallbacks |
+| [`reference-map.md`](reference-map.md) | Which model talk each slide follows (Willison, Karpathy, Zhang, MacCárthaigh), its one visual, and the next cuts |
 | [`off-the-shelf.md`](off-the-shelf.md) | What AWS offers off the shelf for each part of the talk, with sources: the build-vs-buy slides |
 | [`theme/`](theme) | The AWS Dev Day template |
 

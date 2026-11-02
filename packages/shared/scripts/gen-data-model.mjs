@@ -19,6 +19,11 @@ const tables = {};
 for (const name of index.tables) {
   const { meta, doc } = read(`${name}.md`);
   for (const key of ["description", "grain", "columns", "joins"]) if (meta[key] === undefined) throw new Error(`${name}.md: missing ${key}`);
+  // An unquoted comma inside a flow mapping (`description: a, b`) silently becomes an extra key: refuse it.
+  for (const c of meta.columns) {
+    const extra = Object.keys(c).filter((k) => !["name", "type", "description", "pii"].includes(k));
+    if (extra.length) throw new Error(`${name}.md: column ${c.name} has unknown keys ${extra.join(", ")}; quote descriptions that contain commas`);
+  }
   tables[name] = { ...meta, doc };
 }
 const model = { database: index.database, forbidden_columns: index.forbidden_columns ?? [], tables, metrics: read("metrics.md").meta.metrics, examples: index.examples };

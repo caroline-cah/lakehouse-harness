@@ -16,7 +16,8 @@ resource "aws_s3_object" "agent_zip" {
   bucket = aws_s3_bucket.code.id
   key    = "lakehouse_agent/agent.zip"
   source = "${path.module}/../packages/agent/.build/agent.zip"
-  etag   = filemd5("${path.module}/../packages/agent/.build/agent.zip")
+  # source_hash, not etag: the zip is uploaded multipart, so its S3 ETag is never the md5 and etag would diff forever.
+  source_hash = filemd5("${path.module}/../packages/agent/.build/agent.zip")
 }
 
 data "aws_iam_policy_document" "runtime_trust" {

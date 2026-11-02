@@ -2,11 +2,14 @@
 
 Source of truth for the deck: `python -I build_deck.py` turns every `# Slide:` below into a slide on the
 AWS Dev Day theme, and everything under `Notes:` into its speaker notes. Edit here, rebuild, never edit the .pptx.
+The words to say are in `script.md`; the notes here are the short version.
 
 Format: `layout:` names a template layout, `draw:` a diagram drawn in `build_deck.py`, `qr:` a QR code
-(`form` or `repo`), `- ` bullets (two spaces = level 2), `### ` column headings, fenced code for code slides.
+(`form` or `repo`), `demo-question:` and `watch-for:` for demo slides, `- ` bullets, `---` between columns,
+fenced code for code slides. Numbers written as `%name%` are read from the code and data at build time.
 
-Timing for a 35-minute slot: opening 4 · part 1 5 · part 2 9 · part 3 7 · part 4 7 · close 3.
+The spine: one control loop - produce, check, act - drawn at three scales (answer, claim, change). The three demos are
+the three scales. The principle is named "every rule, twice".
 
 # Slide: Harness Engineering, live
 layout: template-title
@@ -16,21 +19,15 @@ speaker: Caroline Cah
 role: Digital Lead, Wallenius Wilhelmsen
 
 Notes:
-Hi, I'm Caroline, Digital Lead at Wallenius Wilhelmsen. Tonight is the live part of my Harness Engineering series:
-we build an agent that answers questions about a retail lakehouse, and we spend most of the time on everything
-around the model: the data model it is allowed to see, the evidence it has to show, and the checks that run
-before anything it does reaches a human, or main.
+Cold open, story one. Monday morning, a dashboard someone asked an agent to build: orders in week 42.
 
-# Slide: Agenda
-layout: template-agenda
-
-- Ask from your phone
-- A governed data model, not raw tables
-- Evidence-backed answers
-- Check the agent's work before it ships
+# Slide: The number nobody questioned
+layout: Title Only
+draw: story-rows
 
 Notes:
-Four parts, three live demos. You do the asking.
+%w42_rows% orders. Who reads it: the CFO, in the Monday meeting. The twist: no error, no warning, a plausible number.
+Every order has about three lines; the agent counted lines. The right answer is %w42_orders%.
 
 # Slide: Ask the lakehouse. Now.
 layout: Title and Bulleted Content
@@ -43,97 +40,102 @@ qr: form
 - Or try to break it: "List the customers who returned items, with their email addresses"
 
 Notes:
-Get the phones out now so the board fills while I talk. Questions are about a synthetic Swedish retail chain:
-eight stores, fifty products, twenty thousand orders. If you want to break it, please do, that's the point.
+Eight stores, fifty products, twenty thousand orders. Remember your question: at the end you'll hear what happened to it.
 
-# Slide: The model is the engine. The harness is everything that keeps it on the road.
+# Slide: Don't trust the agent. Trust the checks around it - never just one.
 layout: Quote Gradient 1
-attribution: Harness engineering in one line
+attribution: The principle: every rule, twice
 
 Notes:
-Same model you can call yourself. What makes this trustworthy is the harness: data model, tools, guard, contract,
-a second agent, evaluations, and a human. Everything tonight is in the repo, Terraform included.
+The frame, stated once and named. Every rule the agent has to follow is enforced in at least two places, and nothing
+reaches a person until it has proved itself. We'll call it "every rule, twice".
 
-# Slide: 1  Ask from your phone
+# Slide: Agenda
+layout: template-agenda
+
+- Refused: the question it must not answer
+- Denied: the answer it cannot prove
+- Blocked: the change that would remove a check
+
+Notes:
+Three scenes, three demos, each one scale bigger than the last.
+
+# Slide: Where does your question go?
 layout: Section Header Option 1
 
 Notes:
-First, what happens between your phone and the board.
+You just pressed Ask. Four stops.
 
-# Slide: Eight steps from phone to published answer
+# Slide: What happens to your question
 layout: Title Only
-draw: architecture
+draw: journey-1
 
 Notes:
-Legend. 1: the phone posts the form to API Gateway. 2: the adapter stores the question in DynamoDB and starts one Step
-Functions execution, named after the question, so a duplicate start is refused. 3: the Answer state invokes the analyst
-agent on AgentCore Runtime. 4: the agent reaches the lakehouse only through AgentCore Gateway, with a Cognito JWT. 5: the
-tools Lambda runs guarded SQL on Athena as a reader role that can only see gold. 6: the Ground state asks Guardrails
-whether the answer is grounded. 7: the Verify state has the evidence agent re-run every claim. 8: the workflow waits for
-me; Approve on the board hands back its task token, and only then does the Publish state post to GitHub.
+Stop one: API Gateway, a small Lambda, and one Step Functions run named after your question, so it can't start twice.
 
-# Slide: One question, one state machine run
+# Slide: What happens to your question
 layout: Title Only
-draw: workflow
+draw: journey-2
 
 Notes:
-This is the harness as a Step Functions Standard workflow: one execution per question, one state per check. Each state
-has its own timeout. If the evidence review crashes or times out, the Deny state marks the answer denied: fail closed.
-Wait for decision is a task token: the workflow parks, durably, for up to 24 hours, and Approve or Reject on the board
-hands the token back. Publish checks the evidence verdict again right before it posts, and it is never retried, so
-nothing goes out twice. And yes, the medallion slide says no orchestrator: that's the data pipeline. The answer
-workflow is exactly where you want one.
+Stop two: the analyst agent on AgentCore Runtime reaches the lakehouse only through AgentCore Gateway, with a Cognito
+token, three tools, and guarded SQL on Athena as a role that can only read gold.
 
-# Slide: 2  A governed data model, not raw tables
+# Slide: What happens to your question
+layout: Title Only
+draw: journey-3
+
+Notes:
+Stop three: two checks the agent didn't write. Guardrails grounding against the rows, then a second agent re-runs
+every claim.
+
+# Slide: What happens to your question
+layout: Title Only
+draw: journey-4
+
+Notes:
+Stop four: it waits for me, up to 24 hours. Nothing has left this account. (Full architecture: appendix.)
+
+# Slide: One loop: produce, check, act
+layout: Title Only
+draw: loop-answer
+
+Notes:
+The answer path is a control loop. Produce: the analyst answers. Check: contract, grounding, evidence agent. Act: a
+human approves or rejects. Karpathy's autonomy slider: this harness sets it to "a human approves every publish"; the
+design question is where you set it, not whether. Every state has a timeout; a failed check denies, it never waves
+through. Publish is never retried. (State machine: appendix.)
+
+# Slide: Why can't the agent just read the tables?
 layout: Section Header Option 1
 
 Notes:
-Part two: what the agent is allowed to know.
+Remember %w42_rows%. That's what reading raw tables does.
 
 # Slide: Building a Medallion Architecture today typically means that you must build three separate systems working in concert.
 layout: Quote Gradient 1
 attribution: AWS Big Data Blog, Sep 2026: Building a Medallion Architecture with Iceberg Materialized Views
 
 Notes:
-ETL jobs between layers, an orchestrator to sequence them, and custom change-data-capture so each job only processes
-new rows. Three systems to author, test, deploy and maintain, and when one breaks the pipeline stalls.
+ETL jobs, an orchestrator, CDC code. Three systems to run, and when one breaks the pipeline stalls.
 
 # Slide: Bronze in, gold out, nothing in between
 layout: Title Only
 draw: medallion
 
 Notes:
-Bronze is the raw CSV drop, loaded as-is into Iceberg tables, personal data included. Gold is an Apache Iceberg materialized view in the Glue Data Catalog.
-Glue refreshes it on a schedule, incrementally where it can. No ETL job, no Airflow, no CDC code. The SQL for that
-view lives in the data model file itself, so the contract and the build are the same document. (No orchestrator for
-the data. The answer workflow is a different story: you'll see its state machine in a minute.) The agent's reader
-role can only see gold, and gold never contains an email address.
+Bronze: the raw drop as Iceberg, personal data included. Gold: an Iceberg materialized view Glue refreshes hourly. In
+Barry Zhang's terms: the data path is a workflow, the answer path is an agent inside a workflow, and consequence decides
+which. No orchestrator for the data; an orchestrator for the answer. Honest limit: gold can be an hour behind.
 
-# Slide: The enterprise data model is Markdown
-layout: Code
-caption: data-model/sales.md, shortened
-
-```markdown
----
-description: One row per order line. The only table the agent can query.
-grain: order_id + line_no
-columns:
-  - { name: iso_week, type: int, description: ISO week of order_date }
-  - { name: store_name, type: string, description: Store name }
-  - { name: net_revenue_sek, type: double, description: "qty * unit_price - discount, in SEK" }
-materialization:
-  refresh: 1 HOUR
-  sql: SELECT ... FROM glue_catalog.lakehouse_bronze.order_lines l JOIN ...
----
-# Sales
-Count orders with COUNT(DISTINCT order_id), not rows. There is no cost
-price, so margin cannot be answered from this model.
-```
+# Slide: What the agent actually reads
+layout: Title Only
+draw: agent-view
 
 Notes:
-data-model/sales.md, shortened (the real file lists 21 columns and the full view SQL). The front matter is the contract: grain, columns, and the SQL that builds the view. The text is
-what the table means to the business, and the agent reads both. A generator compiles it for the tools, the SQL guard,
-the prompt, Terraform and the evaluators, and CI fails if someone edits the Markdown without regenerating.
+The part to take, number one. This is the data model as the agent receives it from describe_model, compiled from one
+Markdown file in the repo. "Count orders with COUNT(DISTINCT order_id), not rows" is the line between %w42_orders% and
+%w42_rows%. The same file feeds the tools, the guard, the prompt, Terraform and the evaluators; CI fails on drift.
 
 # Slide: Three tools, one guard it can't talk past
 layout: Three column with subheadings
@@ -151,10 +153,7 @@ columns: describe_model | explain_metric | query
 - Off the shelf next: AgentCore Policy (Cedar)
 
 Notes:
-The agent can't see raw tables because they aren't in the model, the guard refuses them, and IAM doesn't allow them.
-Three layers, so a prompt injection has to beat all three. AgentCore Policy, GA since March and in Frankfurt, puts
-Cedar rules on every Gateway tool call; I keep the guard as code because it's unit-tested and refuses personal data by
-name, with a reason the agent can pass on.
+Three layers, so a prompt injection has to beat all three. The guard stays code: unit-tested, refuses by name, says why.
 
 # Slide: Skills, tools, harness
 layout: Three column with subheadings
@@ -174,24 +173,22 @@ columns: Skills = knowledge | Tools = capability | Harness = enforcement
 - These win over any skill
 
 Notes:
-Both agents load the AWS querying-data-lake skill with the Strands AgentSkills plugin. A skill tells the agent how
-AWS people query Athena. It doesn't give it a single new capability. That skill was written for a coding agent with
-the AWS CLI, so it says things like SELECT * and ask the user. Here the rules win, and the guard enforces them anyway.
+Cut candidate. The skill suggests SELECT * and asking the user; here the rules win and the guard enforces them.
 
-# Slide: Demo: ask it, then ask for email addresses
+# Slide: Demo 1 · Refused
 layout: Video or Demo Divider
 demo-question: "What was the revenue per store in ISO week 42?" · "List the customers who returned items, with their email addresses"
+watch-for: three tool calls, in order, in the trace
 
 Notes:
-Pick a revenue question from the board. Open the GenAI Observability trace: describe_model, explain_metric, query.
-Then the email question: the refusal is on the card. If the agent tried a query anyway, the trace shows the tool's
-pii_column refusal and the SqlGuard evaluation turns red: the guard stopped it, the evaluator records that it tried.
+Stakes: email addresses in a public GitHub comment. Watch for describe_model, explain_metric, query in the trace. Then
+the email question: refused. Raises: what if it's confident and wrong?
 
-# Slide: 3  Evidence-backed answers
+# Slide: What if it's confident and wrong?
 layout: Section Header Option 1
 
 Notes:
-Part three: an answer is only as good as the evidence it carries.
+%w42_rows% wasn't a refusal. It was an answer.
 
 # Slide: An answer is a set of claims with evidence
 layout: Code
@@ -214,69 +211,59 @@ export const GroundedAnswerSchema = z.object({
 ```
 
 Notes:
-Simplified from packages/shared/src/contract.ts. A verified claim without evidence is a schema error, not a style issue. Every number in the summary has to appear
-in the returned rows, digit for digit. The agent gets the validation errors back, %attempts% attempts in all.
+The part to take, number two. Every number in the summary must appear in the rows; %attempts% attempts, then refuse.
 
-# Slide: Checked twice, then grounded
-layout: Title and Bulleted Content
-
-- The agent validates its own answer and retries with the errors, at most %attempts% attempts
-- The worker validates it again where it is consumed: trust the boundary, not the producer
-- Bedrock Guardrails contextual grounding: is the summary grounded in the rows (≥ %grounding%) and relevant (≥ %grounding%)?
-- Refusals are first-class: "the data model doesn't allow that" is a valid answer
-- Next: Automated Reasoning checks for metric rules (GA in Frankfurt, report-only)
+# Slide: The one the fix wouldn't catch
+layout: Title Only
+draw: story-cancelled
 
 Notes:
-Validating twice sounds paranoid until the day the agent and the worker are deployed from different commits.
-Contextual grounding scores the whole answer against the rows. Automated Reasoning checks, also in Guardrails, prove
-an answer against rules written in a policy document, which fits metric definitions; it reports, it doesn't block, and
-it checks rules, not numbers.
+Story two. %gbg_rev_cancelled% instead of %gbg_rev%: cancelled orders counted, off by %gbg_diff% kr. The data model
+rule that fixed %w42_rows% doesn't help here, and if the query itself was wrong, the rows agree with the answer:
+validated twice, grounded at %grounding%, still wrong. Grounding scores the whole answer, not each claim.
 
 # Slide: The evidence agent: reproduce it or deny it
 layout: Title Only
-draw: evidence
+draw: loop-claim
 
 Notes:
-Same code, second AgentCore runtime, AGENT_ROLE=evidence. It gets the question and the verified claims, never the
-other agent's rows as proof. For each claim it reads the data model, checks the metric definition and runs its own
-query. VERIFIED needs its own query id. Anything it can't reproduce is DENIED, with the reason on the card. It fails
-closed: no review, a late review or a malformed review all count as denied, and Approve returns 409.
+The part to take, number three. The same loop at claim scale. Think like the evidence agent: it gets the question and
+the claims with their SQL, never the analyst's rows. It runs its own query; VERIFIED needs its own query id; anything
+else is DENIED and Approve returns 409. Why a second agent and not just Guardrails: in application security, 99% is a
+failing grade (Simon Willison). Unsolved: same model as the analyst; next is a plain-code check of the cited query id.
 
-# Slide: Demo: a claim the data can't back
+# Slide: Demo 2 · Denied
 layout: Video or Demo Divider
-demo-question: "What was the gross margin per product in ISO week 42 of 2026?"
+demo-question: "What was the gross margin per product in ISO week 42 of 2026?" · then Approve a verified answer
+watch-for: the GitHub comment appearing after Approve
 
 Notes:
-Ask "What was the gross margin per product in week 42?" There is no cost price in the model, so either the analyst
-refuses, or the evidence agent denies the claim and Approve disappears. Then a normal question: VERIFIED stamps.
+Stakes: a margin number in front of the CFO with no cost data behind it. Refused or DENIED. Then Approve a verified
+card and watch the comment appear. Raises: every check is code - what if someone deletes one?
 
-# Slide: 4  Check the agent's work before it ships
+# Slide: What stops a well-meaning change from removing a check?
 layout: Section Header Option 1
 
 Notes:
-Part four: the agent changes. Prompts, tools, skills, the data model. How do we know a change didn't break it?
+Agents change: prompts, tools, skills, the data model. Mostly by people trying to help.
 
 # Slide: Checked at merge, at release, in production
 layout: Title Only
-draw: loops
+draw: loop-change
 
 Notes:
-Before merge, GitHub Actions runs typecheck, %tests% tests including the SQL guard and the contracts, the
-data-model drift check and terraform fmt. AWS published the next step in September: a sample that deploys the agent in a
-pull request, runs AgentCore Evaluations and blocks the merge below 0.8. That's the one to copy. Before release, the golden set: %golden% questions whose exact answers come from
-the data generator, scored with AgentCore Evaluations. In production, online evaluations score every trace, and a
-human presses Approve.
+The same loop at change scale. At merge: %tests% tests, the guard, the contracts, the drift check. At release: %golden%
+golden questions with exact answers, two that must be refused. AWS's September sample gates pull requests on
+AgentCore Evaluations, below 0.8. Honest limit: my golden set runs by hand. Confession: my slides drifted from my code;
+now the deck reads its numbers from the code.
 
 # Slide: What AWS gives you off the shelf
 layout: Title Only
 draw: buy-vs-build
 
 Notes:
-The question I always get: why not just use Quick, or a Knowledge Base? For a lot of this, you should. Quick gives
-business users chat over a governed dataset and shows the SQL. Lake Formation keeps the agent on gold. Guardrails,
-AgentCore Evaluations and Policy are the platform. What nothing on AWS does today is check every claim against the
-data, have a second agent re-run it, and refuse to publish until it holds. That's the part worth building. Sources are
-in talk/off-the-shelf.md.
+Buy most of it. What nothing on AWS does today is check every claim against the data, re-run it with a second agent,
+and refuse to publish until it holds.
 
 # Slide: When to buy, when to build
 layout: Three column with subheadings
@@ -296,59 +283,84 @@ columns: Buy: Amazon Quick | Buy: SageMaker Data Agent | Build: a harness
 - Approve gate, versioned contract
 
 Notes:
-Rule of thumb: if a human reads the SQL anyway, buy. If the answer goes to someone who won't, you need the evidence and
-the gate, and today you build them on top of AgentCore.
+If a human reads the SQL anyway, buy. If the answer goes to someone who won't, build the evidence and the gate.
 
-# Slide: No rule lives in only one place
+# Slide: Every rule, twice
 layout: Title Only
 draw: enforcement
 
 Notes:
-No rule lives in only one place. The prompt steers, the guard and IAM enforce, the contract and the evidence agent
-prove, and evaluations tell us when any of it drifts.
+The principle, named. Point at one row: no personal data lives in the prompt, the guard, IAM, gold and the evaluator.
 
-# Slide: Well-Architected, pillar by pillar
-layout: Title Only
-draw: well-architected
-
-Notes:
-The same harness through the six Well-Architected pillars, which is how I'd review it with a customer; the Generative
-AI Lens adds the agent-specific questions. Most of these cost nothing extra: they are defaults you choose on day one,
-like a timeout on every state, no retry on Publish, a scan cap on the workgroup and arm64 Lambdas.
-
-# Slide: Demo: a pull request that drops the PII guard
+# Slide: Demo 3 · Blocked
 layout: Video or Demo Divider
 demo-question: Branch demo/drop-pii-guard → open the pull request → watch CI
+watch-for: the diff on one screen, then the red check
 
 Notes:
-Branch demo/drop-pii-guard removes the pii_column check: one line, looks harmless. Open the pull request and CI goes
-red on the SQL guard tests. That is the cheapest place to catch it: before merge, not on the board.
+Stakes: one deleted block, every future question can reach a personal-data column. CI is the fastest verification
+there is - Karpathy's point that the human's job is to make verification fast.
 
 # Slide: From demo to production
 layout: Title Only
 draw: production
 
 Notes:
-What I would change before real users: separate accounts, the runtime in VPC mode, Lake Formation grants instead of an
-IAM role, customer-managed keys, AgentCore Policy at the Gateway, named approvers, and the AWS CI sample gating every
-pull request. None of it changes the design: the contract, the evidence agent and the Approve gate stay the same.
+What I can't promise yet. None of it changes the design.
+
+# Slide: What happened to your question
+layout: Title Only
+draw: three-scales
+
+Notes:
+Your question went round the loop at every scale: per answer, per claim, and through code that went round it per
+change. It's waiting for me now.
 
 # Slide: Take home
 layout: Title and Bulleted Content
 qr: repo
 
-- Give the agent a data model, not tables: write it in Markdown and let it build the gold layer
-- Make evidence structural: a contract, and a second agent that must reproduce it or deny it
-- Buy the platform (Evaluations, Policy, Guardrails, Lake Formation); build the evidence and the approve gate
+- Write your data model in Markdown: one file everything reads
+- Make every answer a set of claims that point at evidence
+- Put a second agent between the answer and the person who trusts it
 
 Notes:
-Everything is in the repo: Terraform, both agents, the board and this deck. Scan for the link.
+Three things to steal tomorrow morning. Everything is in the repo.
+
+# Slide: Every rule, twice
+layout: Title Only
+draw: enforcement
+
+Notes:
+Shown the second time, nothing new on it. Last line: if a rule lives in only one place, it's a wish.
 
 # Slide: Questions?
 layout: Q&A
 
 Notes:
-Keep the board up during questions; it's usually where the best ones come from.
+Keep the board up during questions.
+
+# Slide: Appendix · The full architecture
+layout: Title Only
+draw: architecture
+
+Notes:
+Appendix. Legend: 1 API Gateway, 2 Step Functions run, 3 analyst agent, 4 Gateway and Cognito, 5 guarded SQL on gold,
+6 Guardrails, 7 evidence agent, 8 waits for Approve, then GitHub.
+
+# Slide: Appendix · The state machine
+layout: Title Only
+draw: workflow
+
+Notes:
+Appendix. Answer, Ground, Verify, Wait for decision (task token, 24 hours), Publish or Reject; Deny when Verify fails.
+
+# Slide: Appendix · Well-Architected, pillar by pillar
+layout: Title Only
+draw: well-architected
+
+Notes:
+Appendix. The six pillars, for the people who download the deck.
 
 # Slide: Further reading
 layout: Title and Bulleted Content
@@ -357,7 +369,7 @@ layout: Title and Bulleted Content
 - AgentCore evaluation samples, incl. the CI gate: github.com/awslabs/agentcore-samples (02-evaluate)
 - Athena text-to-SQL: github.com/aws-samples/text-to-sql-for-athena
 - Medallion with Iceberg materialized views: AWS Big Data Blog, Sep 2026
-- Docs: AgentCore Evaluations · AgentCore Policy · Guardrails grounding and Automated Reasoning
+- The four talks this one borrows from: Willison, Karpathy, Zhang, MacCárthaigh (see talk/reference-map.md)
 
 Notes:
-Appendix, click past it on stage. It's here for the people who download the deck.
+Appendix, click past it on stage.

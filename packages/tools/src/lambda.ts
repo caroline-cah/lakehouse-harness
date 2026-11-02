@@ -19,13 +19,15 @@ const deps = {
   }),
 };
 
-/** Gateway Lambda target: event = tool args, tool name in the client context. Throwing surfaces the message to the model. */
+/**
+ * Gateway Lambda target: event = tool args, tool name in the client context. A refusal is returned as content, not thrown:
+ * the gateway replaces a thrown error with "An internal error occurred", and the model must read why the guard said no.
+ */
 export async function handler(event: Record<string, unknown>, context: Context): Promise<unknown> {
   const name = toolNameFromContext(context as unknown as { clientContext?: { custom?: Record<string, unknown> } }) ?? (event.tool as string | undefined);
   if (!name || !(TOOL_NAMES as readonly string[]).includes(name)) {
     throw new Error(`Unknown tool "${name ?? ""}". Available: ${TOOL_NAMES.join(", ")}.`);
   }
   const result = await handleTool(name as ToolName, event, deps);
-  if (!result.ok) throw new Error(result.error);
-  return result.content;
+  return result.ok ? result.content : { error: result.error };
 }

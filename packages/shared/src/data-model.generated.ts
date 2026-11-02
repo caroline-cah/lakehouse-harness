@@ -28,8 +28,7 @@ export const DATA_MODEL = {
         {
           "name": "order_ts",
           "type": "string",
-          "description": "Order timestamp",
-          "ISO 8601 UTC": null
+          "description": "Order timestamp, ISO 8601 UTC"
         },
         {
           "name": "order_date",

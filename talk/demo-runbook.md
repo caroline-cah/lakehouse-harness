@@ -9,8 +9,9 @@ Three demos, each with a fallback. Region `eu-central-1`. Run everything from th
       `lakehouse_agent` and `lakehouse_evidence_agent`.
 - [ ] `scripts/lakehouse/upload.sh && scripts/medallion.sh build`. The job loads bronze and builds
       `lakehouse_gold.sales`. Check in Athena that `SELECT COUNT(*) FROM lakehouse_gold.sales` returns rows.
-- [ ] One question through the API (`scripts/seed.sh 1`): its Step Functions execution reaches Wait for decision, and
-      Approve on the board moves it through Publish to Succeeded.
+- [ ] The five seed questions through the API (`scripts/seed.sh 20`, the argument is the gap in seconds; shorter gaps
+      throttle the runtime): each Step Functions execution reaches Wait for decision, and Approve on the board moves one
+      through Publish to Succeeded.
 - [ ] The smoke test:
       `pnpm tsx scripts/invoke.ts "What was the revenue per store in ISO week 42 of 2026?"`. It must print an answer,
       then a review with VERIFIED verdicts.

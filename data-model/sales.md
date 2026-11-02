@@ -5,7 +5,7 @@ columns:
   - { name: order_id, type: string, description: Order identifier }
   - { name: line_no, type: int, description: Line number within the order }
   - { name: customer_id, type: string, description: Pseudonymous customer identifier }
-  - { name: order_ts, type: string, description: Order timestamp, ISO 8601 UTC }
+  - { name: order_ts, type: string, description: "Order timestamp, ISO 8601 UTC" }
   - { name: order_date, type: date, description: Order date in Stockholm time }
   - { name: iso_year, type: int, description: ISO week-numbering year of order_date }
   - { name: iso_week, type: int, description: ISO week of order_date (Monday to Sunday) }
