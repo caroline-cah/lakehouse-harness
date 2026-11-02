@@ -19,6 +19,11 @@ describe("numbersTraceable", () => {
     const r = numbersTraceable("Göteborg is up 12 % (112 000 vs 100 000)", rows);
     expect(r.ok).toBe(true);
   });
+  test("a number quoted from the question is allowed, but not as a base for derivations", () => {
+    expect(numbersTraceable("In week 42 Göteborg made 112 000", rows, [42]).ok).toBe(true);
+    expect(numbersTraceable("In week 42 Göteborg made 112 000", rows).missing).toEqual([42]);
+    expect(numbersTraceable("Göteborg made 42 000", rows, [42]).missing).toEqual([42000]);
+  });
   test("untraceable number rejected", () => {
     const r = numbersTraceable("Göteborg made 999 999 last week", rows);
     expect(r).toEqual({ ok: false, missing: [999999] });

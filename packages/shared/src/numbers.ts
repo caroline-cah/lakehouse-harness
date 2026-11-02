@@ -68,12 +68,14 @@ const near = (n: number, d: number) => Number.isFinite(d) && Math.abs(d - n) <= 
 /**
  * Every number in `summary` must be a row value, a percentage of one, or a simple derivation
  * (difference, sum, ratio, percentage change) of two row values. Lenient on rounding, strict on invention.
+ * `quoted` are numbers the summary may repeat without evidence: the ones in the question itself ("week 42",
+ * "at least 10 orders"). They are not facts about the data, and they are never used for derivations.
  */
-export function numbersTraceable(summary: string, rows: Record<string, unknown>[][]): { ok: boolean; missing: number[] } {
+export function numbersTraceable(summary: string, rows: Record<string, unknown>[][], quoted: number[] = []): { ok: boolean; missing: number[] } {
   const values = rowValues(rows);
   const missing: number[] = [];
   for (const n of extractNumbers(summary)) {
-    let found = values.some((v) => direct(n, v) || direct(n, v * 100) || direct(n * 100, v));
+    let found = quoted.some((q) => direct(n, q)) || values.some((v) => direct(n, v) || direct(n, v * 100) || direct(n * 100, v));
     if (!found) {
       outer: for (const a of values) {
         for (const b of values) {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { numbersTraceable } from "./numbers.js";
+import { extractNumbers, numbersTraceable } from "./numbers.js";
 
 /**
  * The evidence contract (Harness Engineering, Part 1): an answer is a set of claims, each one either
@@ -40,7 +40,8 @@ export const GroundedAnswerSchema = z
         if (!ids.has(id)) ctx.addIssue({ code: "custom", path: ["claims", i, "evidenceIds"], message: `Evidence id "${id}" does not exist in evidence[].` });
       }
     });
-    const trace = numbersTraceable(answer.summary, answer.evidence.map((e) => e.sample));
+    // Numbers the question itself contains (the week, a threshold) may be echoed; everything else must come from rows.
+    const trace = numbersTraceable(answer.summary, answer.evidence.map((e) => e.sample), extractNumbers(answer.question));
     if (!trace.ok) {
       ctx.addIssue({
         code: "custom",

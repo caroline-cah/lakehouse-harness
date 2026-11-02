@@ -34,6 +34,12 @@ describe("GroundedAnswerSchema", () => {
     const r = GroundedAnswerSchema.safeParse({ ...grounded, claims: [{ ...grounded.claims[0], evidenceIds: ["nope"] }] });
     expect(r.success).toBe(false);
   });
+  test("the week asked about may be echoed in the summary without appearing in the rows", () => {
+    const r = parseGroundedAnswer({ ...grounded, question: "What was the revenue per store in ISO week 42 of 2026?", summary: "In week 42, Göteborg led with 112 000 SEK and Malmö followed with 100 000 SEK." });
+    expect(r.ok).toBe(true);
+    const bad = parseGroundedAnswer({ ...grounded, question: "What was the revenue per store in ISO week 42 of 2026?", summary: "In week 42, Göteborg led with 112 000 SEK across 57 orders." });
+    expect(bad.ok ? [] : bad.errors.join()).toMatch(/57/);
+  });
   test("untraceable number rejected", () => {
     const r = parseGroundedAnswer({ ...grounded, summary: "Göteborg made 999 999 SEK." });
     expect(r.ok).toBe(false);
