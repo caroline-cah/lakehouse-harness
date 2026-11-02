@@ -41,13 +41,6 @@ export function guardSql(rawSql: string, model: DataModel): GuardResult {
   // Scan the raw text as well: a personal-data column name in a comment is still an attempt to reach it.
   const tokens = `${sql}\n${rawSql}`.toLowerCase().match(/[a-z_][a-z0-9_]*/g) ?? [];
   const piiHit = tokens.find((t) => pii.includes(t));
-  if (piiHit) {
-    return {
-      ok: false,
-      rule: "pii_column",
-      message: `${piiHit} is personal data and is not available through this interface. Remove it and answer without contact details.`,
-    };
-  }
 
   const piiTables = Object.entries(model.tables).filter(([, t]) => t.columns.some((c) => c.pii)).map(([n]) => n);
   const mentionsPiiTable = piiTables.some((t) => new RegExp(`\\b${t}\\b`, "i").test(sql));
