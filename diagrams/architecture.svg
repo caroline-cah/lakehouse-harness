@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 830" width="1600" height="830" font-family="-apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#495057"/></marker></defs>
+<rect width="1600" height="830" fill="#ffffff"/>
+<text x="40" y="44" font-size="18" font-weight="600" fill="#1e1e1e">Lakehouse harness: ask from a phone, answer through a governed data model, prove every claim, publish only after Approve</text>
+<text x="16" y="132" font-size="15" font-weight="600" fill="#868e96">1  Ask</text>
+<text x="16" y="282" font-size="15" font-weight="600" fill="#868e96">2  Answer</text>
+<text x="16" y="432" font-size="15" font-weight="600" fill="#868e96">3  Check</text>
+<text x="16" y="582" font-size="15" font-weight="600" fill="#868e96">4  Act</text>
+<text x="16" y="742" font-size="15" font-weight="600" fill="#868e96">Data lake</text>
+<polyline points="300,126.0 370,126.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="560,126.0 630,126.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="820,126.0 890,126.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1080,126.0 1150,126.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1245.0,162 1245.0,205 465.0,205 465.0,240" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="560,276.0 630,276.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="820,276.0 890,276.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1080,276.0 1150,276.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1340,276.0 1410,276.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="465.0,312 465.0,390" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="560,426.0 630,426.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="820,426.0 890,426.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="985.0,390 985.0,312" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1080,426.0 1150,426.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="985.0,462 985.0,505 465.0,505 465.0,540" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="560,576.0 630,576.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="820,576.0 890,576.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="820,736.0 890,736.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1080,736.0 1150,736.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1340,736.0 1410,736.0" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1485.0,312 1485.0,700" fill="none" stroke="#495057" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="110" y="90" width="190" height="72" rx="8" fill="#a5d8ff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="205.0" y="123.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Phone</text>
+<text x="205.0" y="139.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">QR on the slide</text>
+<rect x="370" y="90" width="190" height="72" rx="8" fill="#a5d8ff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="465.0" y="123.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">API Gateway</text>
+<text x="465.0" y="139.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">HTTP API</text>
+<rect x="630" y="90" width="190" height="72" rx="8" fill="#a5d8ff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="725.0" y="123.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Adapter Lambda</text>
+<text x="725.0" y="139.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">form, intake, board, Approve</text>
+<rect x="890" y="90" width="190" height="72" rx="8" fill="#a5d8ff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="985.0" y="123.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">DynamoDB</text>
+<text x="985.0" y="139.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">one item per question</text>
+<rect x="1150" y="90" width="190" height="72" rx="8" fill="#a5d8ff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="1245.0" y="123.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Step Functions</text>
+<text x="1245.0" y="139.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">one execution per question</text>
+<rect x="370" y="240" width="190" height="72" rx="8" fill="#d0bfff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="465.0" y="273.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Worker Lambda</text>
+<text x="465.0" y="289.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">one action per state</text>
+<rect x="630" y="240" width="190" height="72" rx="8" fill="#d0bfff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="725.0" y="273.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Analyst agent</text>
+<text x="725.0" y="289.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">AgentCore Runtime, Strands</text>
+<rect x="890" y="240" width="190" height="72" rx="8" fill="#d0bfff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="985.0" y="273.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">AgentCore Gateway</text>
+<text x="985.0" y="289.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">MCP, Cognito JWT</text>
+<rect x="1150" y="240" width="190" height="72" rx="8" fill="#d0bfff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="1245.0" y="267.0" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Tools Lambda</text>
+<text x="1245.0" y="283.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">describe_model, explain_metric,</text>
+<text x="1245.0" y="296.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">query + SQL guard</text>
+<rect x="1410" y="240" width="150" height="72" rx="8" fill="#d0bfff" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="1485.0" y="273.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Athena</text>
+<text x="1485.0" y="289.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">reader role: gold only</text>
+<rect x="370" y="390" width="190" height="72" rx="8" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="465.0" y="423.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Evidence contract</text>
+<text x="465.0" y="439.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">Zod schema, validated twice</text>
+<rect x="630" y="390" width="190" height="72" rx="8" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="725.0" y="423.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Guardrails</text>
+<text x="725.0" y="439.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">contextual grounding</text>
+<rect x="890" y="390" width="190" height="72" rx="8" fill="#b2f2bb" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="985.0" y="417.0" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Evidence agent</text>
+<text x="985.0" y="433.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">second runtime: re-runs every</text>
+<text x="985.0" y="446.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">claim</text>
+<rect x="1150" y="390" width="190" height="72" rx="8" fill="#ffc9c9" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="1245.0" y="417.0" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">DENIED</text>
+<text x="1245.0" y="433.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">blocks Approve on the server</text>
+<text x="1245.0" y="446.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">(409)</text>
+<rect x="370" y="540" width="190" height="72" rx="8" fill="#ffd8a8" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="465.0" y="573.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Board</text>
+<text x="465.0" y="589.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">Approve or Reject, task token</text>
+<rect x="630" y="540" width="190" height="72" rx="8" fill="#ffd8a8" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="725.0" y="573.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Publish</text>
+<text x="725.0" y="589.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">never retried</text>
+<rect x="890" y="540" width="190" height="72" rx="8" fill="#ffd8a8" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="985.0" y="567.0" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">GitHub comment</text>
+<text x="985.0" y="583.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">question, answer, every claim +</text>
+<text x="985.0" y="596.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">SQL</text>
+<rect x="1150" y="540" width="190" height="72" rx="8" fill="#e9ecef" stroke="#1e1e1e" stroke-width="1.2" stroke-dasharray="6 4"/>
+<text x="1245.0" y="567.0" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">CloudWatch</text>
+<text x="1245.0" y="583.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">GenAI Observability, AgentCore</text>
+<text x="1245.0" y="596.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">Evaluations</text>
+<rect x="630" y="700" width="190" height="72" rx="8" fill="#ffec99" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="725.0" y="733.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">S3 CSV drop</text>
+<text x="725.0" y="749.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">data/</text>
+<rect x="890" y="700" width="190" height="72" rx="8" fill="#ffec99" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="985.0" y="733.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Glue job</text>
+<text x="985.0" y="749.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">loads once, as-is</text>
+<rect x="1150" y="700" width="190" height="72" rx="8" fill="#ffec99" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="1245.0" y="727.0" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Bronze</text>
+<text x="1245.0" y="743.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">Iceberg, personal data stays</text>
+<text x="1245.0" y="756.0" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">here</text>
+<rect x="1410" y="700" width="150" height="72" rx="8" fill="#ffec99" stroke="#1e1e1e" stroke-width="1.2"/>
+<text x="1485.0" y="733.5" font-size="14" font-weight="600" text-anchor="middle" fill="#1e1e1e">Gold: sales</text>
+<text x="1485.0" y="749.5" font-size="11" font-weight="400" text-anchor="middle" fill="#1e1e1e">Iceberg view, hourly</text>
+<rect x="727.9" y="188" width="258.20000000000005" height="14" fill="#ffffff" opacity="0.9"/>
+<text x="855.0" y="199" font-size="11" text-anchor="middle" fill="#495057">Answer · Ground · Verify · Wait · Publish</text>
+<rect x="1340.9" y="259.0" width="72.2" height="14" fill="#ffffff" opacity="0.9"/>
+<text x="1375.0" y="270.0" font-size="11" text-anchor="middle" fill="#495057">guarded SQL</text>
+<rect x="471.0" y="344.0" width="53.6" height="14" fill="#ffffff" opacity="0.9"/>
+<text x="473.0" y="355.0" font-size="11" text-anchor="start" fill="#495057">validate</text>
+<rect x="991.0" y="344.0" width="72.2" height="14" fill="#ffffff" opacity="0.9"/>
+<text x="993.0" y="355.0" font-size="11" text-anchor="start" fill="#495057">own queries</text>
+<rect x="644.4" y="488" width="165.20000000000002" height="14" fill="#ffffff" opacity="0.9"/>
+<text x="725.0" y="499" font-size="11" text-anchor="middle" fill="#495057">VERIFIED: wait for a human</text>
+<rect x="573.3" y="559.0" width="47.4" height="14" fill="#ffffff" opacity="0.9"/>
+<text x="595.0" y="570.0" font-size="11" text-anchor="middle" fill="#495057">Approve</text>
+<rect x="1353.3" y="719.0" width="47.4" height="14" fill="#ffffff" opacity="0.9"/>
+<text x="1375.0" y="730.0" font-size="11" text-anchor="middle" fill="#495057">refresh</text>
+</svg>
