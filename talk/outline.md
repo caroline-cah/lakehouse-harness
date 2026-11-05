@@ -112,12 +112,29 @@ layout: Section Header Option 1
 Notes:
 Remember %w42_rows%. That's what reading raw tables does.
 
-# Slide: Building a Medallion Architecture today typically means that you must build three separate systems working in concert.
-layout: Quote Gradient 1
-attribution: AWS Big Data Blog, Sep 2026: Building a Medallion Architecture with Iceberg Materialized Views
+# Slide: A medallion architecture: three layers, each one more trustworthy than the last
+layout: Three column with subheadings
+columns: Bronze · as it landed | Silver · cleaned and conformed | Gold · ready for a question
+
+- Every record exactly as the source wrote it, strings and all
+- Append-only history: nothing corrected, nothing dropped
+- On AWS: files in S3 as Iceberg tables, registered in the Glue Data Catalog
+---
+- Typed, deduplicated, joined on keys
+- Business rules applied once, in one place
+- Personal data masked here or left behind in bronze
+---
+- Metrics in business terms: revenue, return rate, week
+- One table per shape of question, no joins left to guess
+- Queried by Athena; the only layer a reader role, or an agent, needs to see
 
 Notes:
-ETL jobs, an orchestrator, CDC code. Three systems to run, and when one breaks the pipeline stalls.
+What it is, in one breath: raw data lands in bronze, gets cleaned into silver, and is served from gold, with trust
+rising one layer at a time. The name is from Databricks; on AWS the layers are S3 plus Iceberg, catalogued in Glue,
+queried by Athena, with Lake Formation for who may read which layer. Why it matters tonight: %w42_rows% came from
+reading a raw table. Gold is where "an order" means one row. The AWS Big Data Blog (Sep 2026) adds the cost: building it
+has usually meant three systems in concert, ETL jobs, an orchestrator and change-data-capture code, and when one breaks
+the pipeline stalls. Next slide: how this build collapses it to two layers.
 
 # Slide: Bronze in, gold out, nothing in between
 layout: Title Only

@@ -134,8 +134,15 @@ Before you start: board on the projector, phone QR tested, Step Functions and Ge
 **Slide 14 · Section** (8:30)
 > Remember 3146? That's what reading raw tables does.
 
-**Slide 15 · The medallion quote** (8:35) ✂ (skip the quote, say the problem in one sentence)
-> AWS put it like this in September: a medallion used to mean three systems - ETL jobs, an orchestrator, and
+**Slide 15 · A medallion architecture: three layers** (8:35) ✂ (if late: one sentence, "raw in bronze, cleaned in silver,
+served from gold, and the agent only ever sees gold")
+> Quick definition for anyone who hasn't built one. Raw data lands in bronze exactly as the source wrote it. Silver is
+> where it gets typed, deduplicated and joined, and where personal data is masked or left behind. Gold is metrics in
+> business terms, one table per shape of question. Trust goes up one layer at a time. On AWS that's S3 with Iceberg,
+> catalogued in Glue, queried by Athena, Lake Formation deciding who reads which layer.
+>
+> Remember 3146? That came from reading a raw table. In gold, "an order" means one row. And AWS put the cost like
+> this in September: building a medallion has usually meant three systems in concert - ETL jobs, an orchestrator, and
 > change-data-capture code. When one breaks, everything stops.
 
 **Slide 16 · Bronze in, gold out, nothing in between** (9:10)
