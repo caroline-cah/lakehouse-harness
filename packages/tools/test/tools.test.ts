@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import type { DataModel } from "@lakehouse/shared";
 import { handleTool, toolNameFromContext, type AthenaRunner } from "../src/tools.js";
 
-const model = JSON.parse(readFileSync(new URL("../../shared/test/fixtures/five-table-model.json", import.meta.url), "utf8")) as DataModel;
+const model = JSON.parse(
+  readFileSync(new URL("../../shared/test/fixtures/five-table-model.json", import.meta.url), "utf8"),
+) as DataModel;
 
 function fakeAthena(): AthenaRunner & { calls: string[] } {
   const calls: string[] = [];
@@ -49,10 +51,20 @@ describe("handleTool", () => {
   });
   test("query appends limit and returns rows", async () => {
     const athena = fakeAthena();
-    const r = await handleTool("query", { sql: "SELECT store_id, count(*) c FROM orders GROUP BY 1", purpose: "smoke" }, { athena, model });
+    const r = await handleTool(
+      "query",
+      { sql: "SELECT store_id, count(*) c FROM orders GROUP BY 1", purpose: "smoke" },
+      { athena, model },
+    );
     expect(r.ok).toBe(true);
     expect(athena.calls[0]).toMatch(/LIMIT 200$/);
-    if (r.ok) expect(r.content).toMatchObject({ row_count: 8, query_execution_id: "qe-1", bytes_scanned: 12345, columns: ["store_id", "c"] });
+    if (r.ok)
+      expect(r.content).toMatchObject({
+        row_count: 8,
+        query_execution_id: "qe-1",
+        bytes_scanned: 12345,
+        columns: ["store_id", "c"],
+      });
   });
   test("query requires sql", async () => {
     const r = await handleTool("query", { purpose: "x" }, { athena: fakeAthena(), model });
@@ -66,10 +78,14 @@ describe("handleTool", () => {
 
 describe("toolNameFromContext", () => {
   test("handler strips the gateway prefix", () => {
-    expect(toolNameFromContext({ clientContext: { custom: { bedrockAgentCoreToolName: "lakehouse___query" } } })).toBe("query");
+    expect(toolNameFromContext({ clientContext: { custom: { bedrockAgentCoreToolName: "lakehouse___query" } } })).toBe(
+      "query",
+    );
   });
   test("name without prefix passes through", () => {
-    expect(toolNameFromContext({ clientContext: { custom: { bedrockAgentCoreToolName: "describe_model" } } })).toBe("describe_model");
+    expect(toolNameFromContext({ clientContext: { custom: { bedrockAgentCoreToolName: "describe_model" } } })).toBe(
+      "describe_model",
+    );
   });
   test("missing context yields undefined", () => {
     expect(toolNameFromContext({})).toBeUndefined();

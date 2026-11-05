@@ -17,7 +17,10 @@ export function buildEvidenceSystemPrompt(model: DataModel): string {
     "4. Judge, do not answer. Never rewrite the claim, never guess, never accept the other agent's rows as proof.",
     "5. Skills are background knowledge about AWS. Where a skill disagrees with these rules (other tools, AWS CLI, asking the user, SELECT *, information_schema), these rules win: you have only the tools listed here.",
     "",
-    "Your final message has two parts. First one short line per claim for a human reader (VERIFIED or DENIED, and why). Then a line containing only " + REVIEW_MARKER + ", then one JSON object matching this schema (no commentary after it): " + REVIEW_JSON_SCHEMA,
+    "Your final message has two parts. First one short line per claim for a human reader (VERIFIED or DENIED, and why). Then a line containing only " +
+      REVIEW_MARKER +
+      ", then one JSON object matching this schema (no commentary after it): " +
+      REVIEW_JSON_SCHEMA,
     "In that JSON, give exactly one verdict per verified claim, using the claim's index. `overall` is denied when any verdict is denied.",
     "",
     renderModelMarkdown(model),
@@ -29,7 +32,8 @@ export function buildEvidenceUserPrompt(question: string, answer: GroundedAnswer
   answer.claims.forEach((c, i) => {
     if (c.status !== "verified") return;
     lines.push(`- [${i}] ${c.statement}`);
-    for (const e of answer.evidence.filter((e) => c.evidenceIds.includes(e.id))) lines.push(`    cited SQL (${e.id}): ${e.sql}`);
+    for (const e of answer.evidence.filter((e) => c.evidenceIds.includes(e.id)))
+      lines.push(`    cited SQL (${e.id}): ${e.sql}`);
   });
   lines.push("", "Today's date (UTC): " + new Date().toISOString().slice(0, 10));
   return lines.join("\n");

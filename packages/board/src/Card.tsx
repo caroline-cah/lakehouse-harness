@@ -22,13 +22,17 @@ export function Card({ q, evaluations, busy, onDecide }: Props) {
       </header>
       <p className="question">{q.question}</p>
 
-      {q.status === "working" ? <p className="working">The agent is reading the data model and querying Athena…</p> : null}
+      {q.status === "working" ? (
+        <p className="working">The agent is reading the data model and querying Athena…</p>
+      ) : null}
 
       {a ? (
         <div className="answer">
           {a.summary ? <p className="summary">{a.summary}</p> : null}
           {a.refusals.map((r, i) => (
-            <p key={i} className="refusal">🛑 {r}</p>
+            <p key={i} className="refusal">
+              🛑 {r}
+            </p>
           ))}
           {a.claims.length > 0 ? (
             <ul className="claims">
@@ -40,8 +44,15 @@ export function Card({ q, evaluations, busy, onDecide }: Props) {
                     {c.evidenceIds.map((id) => {
                       const e = a.evidence.find((x) => x.id === id);
                       return (
-                        <button key={id} className="chip" type="button" onClick={() => setShowSql(showSql === id ? null : id)} title={e?.query_execution_id}>
-                          {id}{e ? ` · ${e.row_count} rows` : ""}
+                        <button
+                          key={id}
+                          className="chip"
+                          type="button"
+                          onClick={() => setShowSql(showSql === id ? null : id)}
+                          title={e?.query_execution_id}
+                        >
+                          {id}
+                          {e ? ` · ${e.row_count} rows` : ""}
                         </button>
                       );
                     })}
@@ -59,7 +70,9 @@ export function Card({ q, evaluations, busy, onDecide }: Props) {
         </div>
       ) : null}
 
-      {q.evidence?.error ? <p className="stamp denied">DENIED · The evidence agent could not review this answer: {q.evidence.error}</p> : null}
+      {q.evidence?.error ? (
+        <p className="stamp denied">DENIED · The evidence agent could not review this answer: {q.evidence.error}</p>
+      ) : null}
 
       {q.status === "failed" ? <p className="error">{q.error}</p> : null}
       {q.status === "published" && q.publishedUrl ? (
@@ -67,7 +80,9 @@ export function Card({ q, evaluations, busy, onDecide }: Props) {
           Posted on the issue ↗
         </a>
       ) : null}
-      {q.status === "rejected" ? <p className="rejected">Rejected{q.rejectReason ? `: ${q.rejectReason}` : ""}</p> : null}
+      {q.status === "rejected" ? (
+        <p className="rejected">Rejected{q.rejectReason ? `: ${q.rejectReason}` : ""}</p>
+      ) : null}
 
       <Badges q={q} evaluations={evaluations} />
 

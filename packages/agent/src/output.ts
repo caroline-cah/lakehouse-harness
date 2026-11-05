@@ -19,11 +19,17 @@ export function splitAnswerText(text: string, marker = JSON_MARKER): SplitResult
   if (i < 0) return { prose: text.trim(), error: `The response has no ${marker} marker followed by the JSON object.` };
   const prose = text.slice(0, i).trim();
   let raw = text.slice(i + marker.length).trim();
-  raw = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/, "").trim();
+  raw = raw
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/, "")
+    .trim();
   try {
     return { prose, json: JSON.parse(raw) as unknown };
   } catch (e) {
-    return { prose, error: `The text after the marker is not valid JSON: ${e instanceof Error ? e.message : String(e)}` };
+    return {
+      prose,
+      error: `The text after the marker is not valid JSON: ${e instanceof Error ? e.message : String(e)}`,
+    };
   }
 }
 
@@ -73,11 +79,20 @@ export async function invokeWithContract<T>(
   return { ok: false, errors };
 }
 
-export async function answerWithRetries(agent: TextAgent, payload: InvokePayload, opts: { retries?: number } = {}): Promise<InvokeResponse> {
-  const r = await invokeWithContract(agent, buildUserPrompt(payload), (json) => {
-    const parsed = parseGroundedAnswer(json);
-    return parsed.ok ? { ok: true, value: parsed.answer } : parsed;
-  }, opts);
+export async function answerWithRetries(
+  agent: TextAgent,
+  payload: InvokePayload,
+  opts: { retries?: number } = {},
+): Promise<InvokeResponse> {
+  const r = await invokeWithContract(
+    agent,
+    buildUserPrompt(payload),
+    (json) => {
+      const parsed = parseGroundedAnswer(json);
+      return parsed.ok ? { ok: true, value: parsed.answer } : parsed;
+    },
+    opts,
+  );
   if (r.ok) return { answer: r.value };
   return { refusal: "The agent could not produce an answer that satisfies the evidence contract.", errors: r.errors };
 }

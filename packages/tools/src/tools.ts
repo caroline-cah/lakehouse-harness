@@ -33,13 +33,17 @@ export async function handleTool(name: ToolName, args: Record<string, unknown>, 
       const metricName = typeof args.name === "string" ? args.name.trim().toLowerCase() : "";
       const metric = deps.model.metrics[metricName];
       if (!metric) {
-        return { ok: false, error: `Unknown metric "${metricName}". Defined metrics: ${Object.keys(deps.model.metrics).join(", ")}.` };
+        return {
+          ok: false,
+          error: `Unknown metric "${metricName}". Defined metrics: ${Object.keys(deps.model.metrics).join(", ")}.`,
+        };
       }
       return { ok: true, content: { name: metricName, definition: metric.definition, sql: metric.sql } };
     }
 
     case "query": {
-      if (typeof args.sql !== "string" || args.sql.trim() === "") return { ok: false, error: "query needs a non-empty `sql` string." };
+      if (typeof args.sql !== "string" || args.sql.trim() === "")
+        return { ok: false, error: "query needs a non-empty `sql` string." };
       const guard = guardSql(args.sql, deps.model);
       if (!guard.ok) return { ok: false, error: `Query refused (${guard.rule}): ${guard.message}` };
       const out = await deps.athena.run(guard.sql);
@@ -63,7 +67,9 @@ export async function handleTool(name: ToolName, args: Record<string, unknown>, 
 }
 
 /** AgentCore Gateway passes `${target}___${tool}` in the Lambda client context; strip the target prefix. */
-export function toolNameFromContext(context: { clientContext?: { custom?: Record<string, unknown> } }): string | undefined {
+export function toolNameFromContext(context: {
+  clientContext?: { custom?: Record<string, unknown> };
+}): string | undefined {
   const raw = context.clientContext?.custom?.bedrockAgentCoreToolName;
   if (typeof raw !== "string" || raw === "") return undefined;
   const i = raw.indexOf("___");

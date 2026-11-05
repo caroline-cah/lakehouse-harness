@@ -40,17 +40,29 @@ describe("agent http contract", () => {
     expect(await r.json()).toEqual({ status: "Healthy" });
   });
   test("invocations returns the answer and passes hints through", async () => {
-    const r = await fetch(`${base}/invocations`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Q", hints: [{ question: "a", answer: "b" }] }) });
+    const r = await fetch(`${base}/invocations`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ question: "Q", hints: [{ question: "a", answer: "b" }] }),
+    });
     expect(r.status).toBe(200);
     expect(await r.json()).toEqual(good);
     expect(lastPayload?.hints).toHaveLength(1);
   });
   test("invocations rejects a missing question", async () => {
-    const r = await fetch(`${base}/invocations`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ prompt: "legacy" }) });
+    const r = await fetch(`${base}/invocations`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ prompt: "legacy" }),
+    });
     expect(r.status).toBe(400);
   });
   test("invocations returns a refusal when the agent throws", async () => {
-    const r = await fetch(`${base}/invocations`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "boom" }) });
+    const r = await fetch(`${base}/invocations`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ question: "boom" }),
+    });
     expect(r.status).toBe(200);
     const body = (await r.json()) as InvokeResponse;
     expect("refusal" in body && body.errors[0]).toMatch(/model exploded/);
@@ -59,7 +71,11 @@ describe("agent http contract", () => {
 
 describe("failure shape", () => {
   test("an agent crash is reported as failed, not as a refusal", async () => {
-    const r = await fetch(`${base}/invocations`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "boom" }) });
+    const r = await fetch(`${base}/invocations`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ question: "boom" }),
+    });
     const body = (await r.json()) as { refusal?: string; failed?: boolean; errors?: string[] };
     expect(body.failed).toBe(true);
   });

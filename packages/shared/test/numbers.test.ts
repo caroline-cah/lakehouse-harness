@@ -3,7 +3,9 @@ import { extractNumbers, numbersTraceable } from "../src/numbers.js";
 
 describe("extractNumbers", () => {
   test("extracts swedish and english formats", () => {
-    expect(extractNumbers("Revenue was 112 000 SEK, up from 1,234.5 and 1.234,5; share 12.5 %")).toEqual([112000, 1234.5, 1234.5, 12.5]);
+    expect(extractNumbers("Revenue was 112 000 SEK, up from 1,234.5 and 1.234,5; share 12.5 %")).toEqual([
+      112000, 1234.5, 1234.5, 12.5,
+    ]);
   });
   test("ignores years and small numbers", () => {
     expect(extractNumbers("In week 43 of 2026 the top 5 stores sold 8 items")).toEqual([43]);
@@ -11,7 +13,12 @@ describe("extractNumbers", () => {
 });
 
 describe("numbersTraceable", () => {
-  const rows = [[{ store: "Göteborg", revenue: 112000.4 }, { store: "Malmö", revenue: 100000 }]];
+  const rows = [
+    [
+      { store: "Göteborg", revenue: 112000.4 },
+      { store: "Malmö", revenue: 100000 },
+    ],
+  ];
   test("exact and rounded numbers trace to rows", () => {
     expect(numbersTraceable("Göteborg made 112 000 and Malmö 100000", rows)).toEqual({ ok: true, missing: [] });
   });
@@ -35,7 +42,11 @@ describe("numbersTraceable", () => {
 
 describe("extractNumbers ignores dates", () => {
   test("iso dates, day ranges and day-month phrases are not facts", () => {
-    expect(extractNumbers("Last week (2026-10-12 to 2026-10-19), i.e. 12–18 Oct, and from 19 October to 25 October 2026, Göteborg made 112 000.")).toEqual([112000]);
+    expect(
+      extractNumbers(
+        "Last week (2026-10-12 to 2026-10-19), i.e. 12–18 Oct, and from 19 October to 25 October 2026, Göteborg made 112 000.",
+      ),
+    ).toEqual([112000]);
     expect(extractNumbers("Week 43 runs Oct 19 to Oct 25; revenue was 1059350.7")).toEqual([43, 1059350.7]);
   });
   test("plain numbers next to words are still facts", () => {
@@ -49,7 +60,10 @@ test("words that merely start like a month are not dates", () => {
 
 describe("review fixes", () => {
   test("athena scientific notation in rows is traceable", () => {
-    expect(numbersTraceable("Total revenue was 13707707.8 SEK", [[{ total_revenue: "1.37077078E7" }]])).toEqual({ ok: true, missing: [] });
+    expect(numbersTraceable("Total revenue was 13707707.8 SEK", [[{ total_revenue: "1.37077078E7" }]])).toEqual({
+      ok: true,
+      missing: [],
+    });
   });
   test("a leading zero decimal is not a thousands group", () => {
     expect(extractNumbers("return rate 0.125 and 0.1509433962264151")).toEqual([]);

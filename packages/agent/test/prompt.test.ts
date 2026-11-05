@@ -26,7 +26,10 @@ describe("buildSystemPrompt", () => {
 
 describe("buildUserPrompt", () => {
   test("includes hints as verified examples when present", () => {
-    const p = buildUserPrompt({ question: "Revenue last week?", hints: [{ question: "Revenue per store last week?", answer: "Göteborg led with 1 232 725 SEK." }] });
+    const p = buildUserPrompt({
+      question: "Revenue last week?",
+      hints: [{ question: "Revenue per store last week?", answer: "Göteborg led with 1 232 725 SEK." }],
+    });
     expect(p).toContain("Revenue last week?");
     expect(p).toMatch(/verified answer/i);
     expect(p).toContain("1 232 725");

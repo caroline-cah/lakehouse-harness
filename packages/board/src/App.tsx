@@ -47,17 +47,28 @@ export function App() {
         <div className="brand">
           <h1>Ask the lakehouse</h1>
           <p className="sub">
-            {state.questions.length === 0 ? "Questions from your phone, answers from AgentCore, approval from Caroline." : `${state.questions.length} question${state.questions.length === 1 ? "" : "s"}`}
+            {state.questions.length === 0
+              ? "Questions from your phone, answers from AgentCore, approval from Caroline."
+              : `${state.questions.length} question${state.questions.length === 1 ? "" : "s"}`}
             {waiting > 0 ? ` · ${waiting} waiting for Caroline` : ""}
           </p>
           <p className={`status status-${state.connection}`}>
             <span className="dot" />
-            {state.connection === "replay" ? "Replaying a recording" : state.connection === "live" ? "Live" : state.connection === "lost" ? "Reconnecting to the API" : "Connecting"}
+            {state.connection === "replay"
+              ? "Replaying a recording"
+              : state.connection === "live"
+                ? "Live"
+                : state.connection === "lost"
+                  ? "Reconnecting to the API"
+                  : "Connecting"}
           </p>
           {error ? <p className="toast">{error}</p> : null}
         </div>
         <div className="qr">
-          <img alt="Scan to ask" src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=0&data=${encodeURIComponent(API_URL + "/")}`} />
+          <img
+            alt="Scan to ask"
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=0&data=${encodeURIComponent(API_URL + "/")}`}
+          />
           <span>Scan to ask</span>
         </div>
       </header>
@@ -69,7 +80,13 @@ export function App() {
             </h2>
             {byColumn[col.key].length === 0 ? <p className="empty">{col.empty}</p> : null}
             {byColumn[col.key].map((q) => (
-              <Card key={q.id} q={q} evaluations={state.evaluations[q.id] ?? []} busy={busy === q.id} onDecide={(d, r) => void onDecide(q, d, r)} />
+              <Card
+                key={q.id}
+                q={q}
+                evaluations={state.evaluations[q.id] ?? []}
+                busy={busy === q.id}
+                onDecide={(d, r) => void onDecide(q, d, r)}
+              />
             ))}
           </section>
         ))}

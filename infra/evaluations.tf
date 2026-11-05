@@ -1,40 +1,11 @@
 # AgentCore Evaluations: a code-based evaluator (SqlGuard), two LLM judges, and an online config over the agent's traces.
-data "archive_file" "evaluator" {
-  type        = "zip"
-  output_path = "${path.module}/.build/evaluator.zip"
-  source_file = "${path.module}/../packages/evaluators/dist/index.mjs"
-}
-
-resource "aws_cloudwatch_log_group" "evaluator" {
-  name              = "/aws/lambda/${local.name}-sqlguard-evaluator"
-  retention_in_days = 14
-}
-
-resource "aws_iam_role" "evaluator" {
-  name               = "${local.name}-sqlguard-evaluator"
-  assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
-}
-
-resource "aws_iam_role_policy" "evaluator" {
-  name = "logs"
-  role = aws_iam_role.evaluator.id
-  policy = jsonencode({
-    Version   = "2012-10-17"
-    Statement = [{ Effect = "Allow", Action = ["logs:CreateLogStream", "logs:PutLogEvents"], Resource = "${aws_cloudwatch_log_group.evaluator.arn}:*" }]
-  })
-}
-
-resource "aws_lambda_function" "evaluator" {
-  function_name    = "${local.name}-sqlguard-evaluator"
-  role             = aws_iam_role.evaluator.arn
-  runtime          = "nodejs22.x"
-  architectures    = ["arm64"]
-  handler          = "index.handler"
-  timeout          = 30
-  memory_size      = 256
-  filename         = data.archive_file.evaluator.output_path
-  source_code_hash = data.archive_file.evaluator.output_base64sha256
-  depends_on       = [aws_cloudwatch_log_group.evaluator, aws_iam_role_policy.evaluator]
+# SqlGuard, the code-based evaluator (packages/evaluators/src/handlers/sql-guard.ts). It only reads its input, so no policy.
+module "evaluator" {
+  source      = "./modules/lambda"
+  name        = "${local.name}-sqlguard-evaluator"
+  source_dir  = "${path.module}/../packages/evaluators/dist/sql-guard"
+  timeout     = 30
+  memory_size = 256
 }
 
 # --- Execution role the Evaluations service assumes (trust and policy per the AgentCore prerequisites page) ---
@@ -97,7 +68,7 @@ data "aws_iam_policy_document" "evaluations" {
   statement {
     sid       = "LambdaInvokeStatement"
     actions   = ["lambda:InvokeFunction", "lambda:GetFunction"]
-    resources = [aws_lambda_function.evaluator.arn]
+    resources = [module.evaluator.arn]
   }
   statement {
     sid       = "Metrics"
@@ -115,7 +86,7 @@ resource "aws_iam_role_policy" "evaluations" {
 resource "aws_lambda_permission" "evaluations_invoke" {
   statement_id   = "AllowAgentCoreEvaluations"
   action         = "lambda:InvokeFunction"
-  function_name  = aws_lambda_function.evaluator.function_name
+  function_name  = module.evaluator.function_name
   principal      = "bedrock-agentcore.amazonaws.com"
   source_account = local.account_id
 }
@@ -128,7 +99,7 @@ resource "aws_bedrockagentcore_evaluator" "sql_guard" {
   evaluator_config {
     code_based {
       lambda_config {
-        lambda_arn                = aws_lambda_function.evaluator.arn
+        lambda_arn                = module.evaluator.arn
         lambda_timeout_in_seconds = 30
       }
     }

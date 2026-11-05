@@ -1,5 +1,5 @@
 # The answer workflow as a Step Functions state machine: one state per harness step, explicit timeouts, fail-closed
-# catches, and a durable wait for the human (task token). Every state runs the steps Lambda (packages/api/src/worker.ts)
+# catches, and a durable wait for the human (task token). Every state runs the steps Lambda (packages/api/src/workflow/steps.ts)
 # with one action; only the question id travels between states, everything else lives in DynamoDB.
 locals {
   # Retry only when Lambda itself was unavailable, never on our own errors: a retried answer costs, a retried publish posts twice.
@@ -17,7 +17,7 @@ locals {
   step = { for action in ["answer", "ground", "verify", "publish"] : action => {
     Type       = "Task"
     Resource   = "arn:${local.partition}:states:::lambda:invoke"
-    Parameters = { FunctionName = aws_lambda_function.worker.arn, Payload = { action = action, "id.$" = "$.id" } }
+    Parameters = { FunctionName = module.worker.arn, Payload = { action = action, "id.$" = "$.id" } }
   } }
 
   workflow = {
@@ -57,7 +57,7 @@ locals {
       DenyUnverified = {
         Type       = "Task"
         Resource   = "arn:${local.partition}:states:::lambda:invoke"
-        Parameters = { FunctionName = aws_lambda_function.worker.arn, Payload = { action = "deny", "id.$" = "$.id", "error.$" = "$.error.Cause" } }
+        Parameters = { FunctionName = module.worker.arn, Payload = { action = "deny", "id.$" = "$.id", "error.$" = "$.error.Cause" } }
         ResultPath = null
         Catch      = local.to_failure
         Next       = "WaitForDecision"
@@ -65,7 +65,7 @@ locals {
       WaitForDecision = {
         Type           = "Task"
         Resource       = "arn:${local.partition}:states:::lambda:invoke.waitForTaskToken"
-        Parameters     = { FunctionName = aws_lambda_function.worker.arn, Payload = { action = "await", "id.$" = "$.id", "token.$" = "$$.Task.Token" } }
+        Parameters     = { FunctionName = module.worker.arn, Payload = { action = "await", "id.$" = "$.id", "token.$" = "$$.Task.Token" } }
         TimeoutSeconds = 86400
         ResultPath     = "$.decision"
         Catch = [
@@ -88,7 +88,7 @@ locals {
       Reject = {
         Type       = "Task"
         Resource   = "arn:${local.partition}:states:::lambda:invoke"
-        Parameters = { FunctionName = aws_lambda_function.worker.arn, Payload = { action = "reject", "id.$" = "$.id", "reason.$" = "$.decision.reason" } }
+        Parameters = { FunctionName = module.worker.arn, Payload = { action = "reject", "id.$" = "$.id", "reason.$" = "$.decision.reason" } }
         ResultPath = null
         Catch      = local.to_failure
         Next       = "Done"
@@ -96,7 +96,7 @@ locals {
       Expire = {
         Type       = "Task"
         Resource   = "arn:${local.partition}:states:::lambda:invoke"
-        Parameters = { FunctionName = aws_lambda_function.worker.arn, Payload = { action = "reject", "id.$" = "$.id", reason = "No decision within 24 hours." } }
+        Parameters = { FunctionName = module.worker.arn, Payload = { action = "reject", "id.$" = "$.id", reason = "No decision within 24 hours." } }
         ResultPath = null
         Catch      = local.to_failure
         Next       = "Done"
@@ -104,7 +104,7 @@ locals {
       RecordFailure = {
         Type       = "Task"
         Resource   = "arn:${local.partition}:states:::lambda:invoke"
-        Parameters = { FunctionName = aws_lambda_function.worker.arn, Payload = { action = "fail", "id.$" = "$.id", "error.$" = "$.error.Cause" } }
+        Parameters = { FunctionName = module.worker.arn, Payload = { action = "fail", "id.$" = "$.id", "error.$" = "$.error.Cause" } }
         ResultPath = null
         Next       = "Failed"
       }
@@ -132,7 +132,7 @@ resource "aws_iam_role" "workflow" {
 data "aws_iam_policy_document" "workflow" {
   statement {
     actions   = ["lambda:InvokeFunction"]
-    resources = [aws_lambda_function.worker.arn, "${aws_lambda_function.worker.arn}:*"]
+    resources = [module.worker.arn, "${module.worker.arn}:*"]
   }
   statement {
     actions   = ["logs:CreateLogDelivery", "logs:GetLogDelivery", "logs:UpdateLogDelivery", "logs:DeleteLogDelivery", "logs:ListLogDeliveries", "logs:PutResourcePolicy", "logs:DescribeResourcePolicies", "logs:DescribeLogGroups"]
