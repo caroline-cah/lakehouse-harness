@@ -5,13 +5,10 @@ Companion code for two AWS user-group talks (Linköping 29 Oct 2026, Stockholm 5
 [Harness Engineering](https://builder.aws.com/content/3HfiXvfzDCTk6OT5ryfygmpJu6W/harness-engineering-building-an-ops-agent-with-agentcore-and-strands) series.
 
 You ask the company lakehouse a question from your phone. An agent on AgentCore Runtime answers through a governed
-data model (never the raw tables), every claim carries evidence, a second agent has to reproduce each claim or deny
-it, Bedrock checks the answer before a human sees it, and nothing is published until someone presses Approve.
+data model, each response must have evidence, a second agent has to reproduce each claim or deny
+it, Bedrock acts as the evidence agent.
 
 ## The talk
-
-Caroline Cah, Digital Lead at Wallenius Wilhelmsen. Slides, speaker notes and the demo runbook are in
-[`talk/`](talk/README.md).
 
 | Part of the talk | Where it lives |
 |---|---|
