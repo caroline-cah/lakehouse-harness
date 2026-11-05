@@ -22,7 +22,9 @@ export function useQuestions(): BoardState {
     if (REPLAY) {
       let stop = () => {};
       void loadReplay(REPLAY).then((frames) => {
-        stop = playReplay(frames, (f) => setState({ questions: f.questions, evaluations: f.evaluations, connection: "replay" }));
+        stop = playReplay(frames, (f) =>
+          setState({ questions: f.questions, evaluations: f.evaluations, connection: "replay" }),
+        );
       });
       return () => stop();
     }
@@ -41,7 +43,13 @@ export function useQuestions(): BoardState {
         questions = s.questions;
         return s;
       });
-      const targets = questions.filter((q) => ["needs_you", "published", "rejected"].includes(q.status) && (evalsRef.current[q.id]?.length ?? 0) < EVALS_WANTED).slice(0, 8);
+      const targets = questions
+        .filter(
+          (q) =>
+            ["needs_you", "published", "rejected"].includes(q.status) &&
+            (evalsRef.current[q.id]?.length ?? 0) < EVALS_WANTED,
+        )
+        .slice(0, 8);
       for (const q of targets) {
         const results = await fetchEvaluations(q.id);
         if (results.length > 0) evalsRef.current = { ...evalsRef.current, [q.id]: results };

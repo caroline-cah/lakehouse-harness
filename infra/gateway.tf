@@ -22,7 +22,7 @@ resource "aws_iam_role" "gateway" {
 data "aws_iam_policy_document" "gateway" {
   statement {
     actions   = ["lambda:InvokeFunction"]
-    resources = [aws_lambda_function.tools.arn]
+    resources = [module.tools.arn]
   }
 }
 
@@ -59,7 +59,7 @@ resource "aws_bedrockagentcore_gateway" "lakehouse" {
 resource "aws_lambda_permission" "gateway_tools" {
   statement_id  = "AllowAgentCoreGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.tools.function_name
+  function_name = module.tools.function_name
   principal     = "bedrock-agentcore.amazonaws.com"
   source_arn    = aws_bedrockagentcore_gateway.lakehouse.gateway_arn
 }
@@ -76,7 +76,7 @@ resource "aws_bedrockagentcore_gateway_target" "lakehouse" {
   target_configuration {
     mcp {
       lambda {
-        lambda_arn = aws_lambda_function.tools.arn
+        lambda_arn = module.tools.arn
 
         tool_schema {
           inline_payload {

@@ -1,4 +1,5 @@
 import express, { type Express, type Request, type Response } from "express";
+import { requireEnv } from "@lakehouse/shared";
 import { answerText, buildAgent, reviewText } from "./agent.js";
 import { directTools } from "./direct-tools.js";
 import { gatewayTools } from "./gateway.js";
@@ -35,36 +36,40 @@ export function createApp(deps: AppDeps): Express {
         res.json(await deps.review({ question: body.question.trim(), answer: review }));
         return;
       }
-      const payload: InvokePayload = { question: body.question.trim(), ...(Array.isArray(body.hints) ? { hints: body.hints } : {}) };
+      const payload: InvokePayload = {
+        question: body.question.trim(),
+        ...(Array.isArray(body.hints) ? { hints: body.hints } : {}),
+      };
       res.json(await deps.answer!(payload));
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error("invocation failed", message);
-      res.json({ refusal: "The agent failed before producing an answer.", errors: [message], failed: true } satisfies InvokeResponse);
+      res.json({
+        refusal: "The agent failed before producing an answer.",
+        errors: [message],
+        failed: true,
+      } satisfies InvokeResponse);
     }
   });
 
   return app;
 }
 
-function env(name: string, fallback?: string): string {
-  const v = process.env[name] ?? fallback;
-  if (v === undefined) throw new Error(`${name} is required`);
-  return v;
-}
-
 /** Production wiring: tools from the gateway (default) or straight from the Lambda (TOOL_MODE=direct). */
-async function withAgent<T>(role: "answer" | "evidence", run: (agent: ReturnType<typeof buildAgent>) => Promise<T>): Promise<T> {
-  const region = env("AWS_REGION", "eu-central-1");
-  const modelId = env("MODEL_ID", "eu.anthropic.claude-sonnet-4-6");
+async function withAgent<T>(
+  role: "answer" | "evidence",
+  run: (agent: ReturnType<typeof buildAgent>) => Promise<T>,
+): Promise<T> {
+  const region = requireEnv("AWS_REGION", "eu-central-1");
+  const modelId = requireEnv("MODEL_ID", "eu.anthropic.claude-sonnet-4-6");
   if ((process.env.TOOL_MODE ?? "gateway") === "direct") {
-    return run(buildAgent({ modelId, region, role, tools: directTools(env("TOOLS_FUNCTION_NAME"), region) }));
+    return run(buildAgent({ modelId, region, role, tools: directTools(requireEnv("TOOLS_FUNCTION_NAME"), region) }));
   }
   const client = await gatewayTools({
-    gatewayUrl: env("GATEWAY_URL"),
-    tokenUrl: env("COGNITO_TOKEN_URL"),
-    clientId: env("COGNITO_CLIENT_ID"),
-    secretParam: env("COGNITO_SECRET_PARAM"),
+    gatewayUrl: requireEnv("GATEWAY_URL"),
+    tokenUrl: requireEnv("COGNITO_TOKEN_URL"),
+    clientId: requireEnv("COGNITO_CLIENT_ID"),
+    secretParam: requireEnv("COGNITO_SECRET_PARAM"),
     region,
   });
   try {
@@ -74,8 +79,10 @@ async function withAgent<T>(role: "answer" | "evidence", run: (agent: ReturnType
   }
 }
 
-export const answerFromEnv = (payload: InvokePayload): Promise<InvokeResponse> => withAgent("answer", (a) => answerText(a, payload));
-export const reviewFromEnv = (payload: ReviewPayload): Promise<ReviewResponse> => withAgent("evidence", (a) => reviewText(a, payload));
+export const answerFromEnv = (payload: InvokePayload): Promise<InvokeResponse> =>
+  withAgent("answer", (a) => answerText(a, payload));
+export const reviewFromEnv = (payload: ReviewPayload): Promise<ReviewResponse> =>
+  withAgent("evidence", (a) => reviewText(a, payload));
 
 const isMain = process.argv[1]?.endsWith("app.ts") || process.argv[1]?.endsWith("app.js");
 if (isMain) {

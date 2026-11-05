@@ -59,16 +59,36 @@ export function piiColumns(model: DataModel): string[] {
 export function renderModelMarkdown(model: DataModel): string {
   const lines: string[] = [];
   lines.push(`# Lakehouse data model (${model.database})`, "");
-  lines.push("Query tables with plain Athena/Trino SQL. Qualify tables as `" + model.database + ".<table>` or use bare names.", "");
+  lines.push(
+    "Query tables with plain Athena/Trino SQL. Qualify tables as `" + model.database + ".<table>` or use bare names.",
+    "",
+  );
   for (const [name, t] of Object.entries(model.tables)) {
-    lines.push(`## ${name}`, t.description, `Grain: ${t.grain}`, "", t.doc, "", "| column | type | description |", "|---|---|---|");
+    lines.push(
+      `## ${name}`,
+      t.description,
+      `Grain: ${t.grain}`,
+      "",
+      t.doc,
+      "",
+      "| column | type | description |",
+      "|---|---|---|",
+    );
     for (const c of t.columns) if (!c.pii) lines.push(`| ${c.name} | ${c.type} | ${c.description} |`);
     const hidden = t.columns.filter((c) => c.pii).map((c) => c.name);
-    if (hidden.length) lines.push("", `Not available through this interface (personal data): ${hidden.join(", ")}. Queries that mention them are refused.`);
+    if (hidden.length)
+      lines.push(
+        "",
+        `Not available through this interface (personal data): ${hidden.join(", ")}. Queries that mention them are refused.`,
+      );
     if (t.joins.length) lines.push("", "Joins: " + t.joins.map((j) => `${j.to} on ${j.on}`).join("; "));
     lines.push("");
   }
-  if (model.forbidden_columns?.length) lines.push(`Personal data (${model.forbidden_columns.join(", ")}) is not available through this interface. Queries that mention it are refused.`, "");
+  if (model.forbidden_columns?.length)
+    lines.push(
+      `Personal data (${model.forbidden_columns.join(", ")}) is not available through this interface. Queries that mention it are refused.`,
+      "",
+    );
   lines.push("## Metrics (use these definitions, do not invent your own)", "");
   for (const [name, m] of Object.entries(model.metrics)) lines.push(`- **${name}**: ${m.definition} SQL: \`${m.sql}\``);
   lines.push("", "## Example questions", "");

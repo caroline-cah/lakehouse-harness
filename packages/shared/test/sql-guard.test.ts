@@ -4,7 +4,9 @@ import type { DataModel } from "../src/data-model.js";
 import { guardSql } from "../src/sql-guard.js";
 
 // The guard is tested against a frozen five-table model (with PII columns), independent of what data-model/ holds today.
-const model = JSON.parse(readFileSync(new URL("./fixtures/five-table-model.json", import.meta.url), "utf8")) as DataModel;
+const model = JSON.parse(
+  readFileSync(new URL("./fixtures/five-table-model.json", import.meta.url), "utf8"),
+) as DataModel;
 const ok = (sql: string) => {
   const r = guardSql(sql, model);
   if (!r.ok) throw new Error(`expected ok, got ${r.rule}: ${r.message}`);
@@ -37,7 +39,9 @@ describe("guardSql", () => {
     expect(rule("SELECT * FROM invoices")).toBe("unknown_table");
   });
   test("qualified table name lakehouse_demo.orders ok", () => {
-    expect(rule("SELECT count(*) FROM lakehouse_demo.orders o JOIN lakehouse_demo.stores s ON o.store_id = s.store_id")).toBe("ok");
+    expect(
+      rule("SELECT count(*) FROM lakehouse_demo.orders o JOIN lakehouse_demo.stores s ON o.store_id = s.store_id"),
+    ).toBe("ok");
   });
   test("WITH cte ok", () => {
     expect(rule("WITH w AS (SELECT order_id FROM orders) SELECT count(*) FROM w")).toBe("ok");
@@ -75,7 +79,7 @@ describe("guardSql hardening", () => {
     expect(rule("SELECT `email` FROM customers")).toBe("unsupported_syntax");
   });
   test("unicode escapes and backslashes are refused", () => {
-    expect(rule("SELECT U&\"\\0065mail\" FROM customers")).toBe("unsupported_syntax");
+    expect(rule('SELECT U&"\\0065mail" FROM customers')).toBe("unsupported_syntax");
     expect(rule("SELECT customer_id FROM customers WHERE city = 'a\\nb'")).toBe("unsupported_syntax");
   });
 });
@@ -89,7 +93,11 @@ describe("guardSql star rule precision", () => {
     expect(rule("SELECT city, count(*) FROM customers GROUP BY 1")).toBe("ok");
   });
   test("multiplication next to a pii table is fine", () => {
-    expect(rule("SELECT c.city, SUM(l.qty * l.unit_price) FROM order_lines l JOIN orders o ON l.order_id = o.order_id JOIN customers c ON o.customer_id = c.customer_id GROUP BY 1")).toBe("ok");
+    expect(
+      rule(
+        "SELECT c.city, SUM(l.qty * l.unit_price) FROM order_lines l JOIN orders o ON l.order_id = o.order_id JOIN customers c ON o.customer_id = c.customer_id GROUP BY 1",
+      ),
+    ).toBe("ok");
   });
   test("star variants on a pii table are refused", () => {
     expect(rule("SELECT customers.* FROM customers")).toBe("pii_column");
@@ -131,7 +139,9 @@ describe("guardSql set operators and nested FROM", () => {
   });
   test("a second FROM in a subquery is checked", () => {
     expect(rule("SELECT * FROM orders WHERE customer_id IN (SELECT id FROM other_db.secret)")).toBe("unknown_table");
-    expect(rule("SELECT o.order_id FROM orders o WHERE EXISTS (SELECT 1 FROM stores s WHERE s.store_id = o.store_id)")).toBe("ok");
+    expect(
+      rule("SELECT o.order_id FROM orders o WHERE EXISTS (SELECT 1 FROM stores s WHERE s.store_id = o.store_id)"),
+    ).toBe("ok");
   });
   test("lateral and tablesample keywords stop the list", () => {
     expect(rule("SELECT * FROM orders TABLESAMPLE BERNOULLI (10)")).toBe("ok");

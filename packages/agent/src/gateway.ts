@@ -31,10 +31,16 @@ async function clientSecret(cfg: GatewayConfig): Promise<string> {
 export async function gatewayToken(cfg: GatewayConfig, fetchImpl: typeof fetch = fetch): Promise<string> {
   if (cached && cached.expiresAt - Date.now() > 5 * 60_000) return cached.value;
   const secret = await clientSecret(cfg);
-  const body = new URLSearchParams({ grant_type: "client_credentials", scope: cfg.scope ?? "lakehouse-gateway/invoke" });
+  const body = new URLSearchParams({
+    grant_type: "client_credentials",
+    scope: cfg.scope ?? "lakehouse-gateway/invoke",
+  });
   const r = await fetchImpl(cfg.tokenUrl, {
     method: "POST",
-    headers: { Authorization: "Basic " + Buffer.from(`${cfg.clientId}:${secret}`).toString("base64"), "content-type": "application/x-www-form-urlencoded" },
+    headers: {
+      Authorization: "Basic " + Buffer.from(`${cfg.clientId}:${secret}`).toString("base64"),
+      "content-type": "application/x-www-form-urlencoded",
+    },
     body,
   });
   if (!r.ok) throw new Error(`Cognito token request failed: ${r.status} ${await r.text()}`);
@@ -46,5 +52,9 @@ export async function gatewayToken(cfg: GatewayConfig, fetchImpl: typeof fetch =
 /** The gateway as a Strands tool source. One client per invocation; the caller disconnects when done. */
 export async function gatewayTools(cfg: GatewayConfig): Promise<McpClient> {
   const token = await gatewayToken(cfg);
-  return new McpClient({ url: cfg.gatewayUrl, headers: { Authorization: `Bearer ${token}` }, applicationName: "lakehouse-agent" });
+  return new McpClient({
+    url: cfg.gatewayUrl,
+    headers: { Authorization: `Bearer ${token}` },
+    applicationName: "lakehouse-agent",
+  });
 }

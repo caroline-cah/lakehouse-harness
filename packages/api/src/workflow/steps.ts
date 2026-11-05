@@ -1,7 +1,7 @@
-import { randomBytes } from "node:crypto";
 import { parseEvidenceReview, type GroundedAnswer } from "@lakehouse/shared";
-import type { EvidenceVerdict, Question, QuestionStore } from "./types.js";
-import { evidenceToText, validateAnswer, type GroundingInput, type GroundingVerdict } from "./validate.js";
+import type { EvidenceVerdict, Question, QuestionStore } from "../types.js";
+import { evidenceToText, validateAnswer, type GroundingInput, type GroundingVerdict } from "../validate.js";
+import { seconds, withDeadline } from "./deadline.js";
 
 /** What the runtime returns for POST /invocations (mirrors packages/agent/src/types.ts). */
 export type AgentResponse = { answer: unknown } | { refusal: string; errors: string[]; failed?: boolean };
@@ -19,20 +19,16 @@ export interface WorkerDeps {
   publish?: (q: Question) => Promise<string>;
 }
 
-/**
- * A fresh, explicitly sampled trace for the runtime invocation. Without it, calls that originate inside Lambda
- * inherit a not-sampled X-Ray context and the agent's spans are never exported (verified 2026-10-22).
- * X-Ray trace ids embed the epoch in the first 8 hex chars, so the two headers are derived from one id.
- */
-export function traceHeaders(now: number = Date.now()): { traceParent: string; traceId: string } {
-  const epochHex = Math.floor(now / 1000).toString(16).padStart(8, "0");
-  const rest = randomBytes(12).toString("hex");
-  const traceId32 = `${epochHex}${rest}`;
-  const spanId = randomBytes(8).toString("hex");
-  return { traceParent: `00-${traceId32}-${spanId}-01`, traceId: `Root=1-${epochHex}-${rest};Sampled=1` };
-}
+export type StepOptions = { deadlineMs?: number; reviewDeadlineMs?: number };
 
-const empty = (question: string, refusal: string): GroundedAnswer => ({ question, claims: [], evidence: [], summary: "", refusals: [refusal] });
+/**
+ * The slow path, as steps of the Step Functions state machine in infra/workflow.tf: answer, ground, verify, wait for a
+ * human, publish or reject. Each step reads and writes the question in DynamoDB; only the id travels between states.
+ * The in-step deadlines sit under the state timeouts, so a hung agent call lands as `failed` or `denied`, not as a timeout.
+ */
+const ANSWER_DEADLINE_MS = 200_000;
+const REVIEW_DEADLINE_MS = 180_000;
+const MAX_REASON_CHARS = 200;
 
 /**
  * The runtime was throttled by Bedrock (the account's requests-per-minute quota). Thrown by name so the state machine
@@ -41,45 +37,17 @@ const empty = (question: string, refusal: string): GroundedAnswer => ({ question
 export class AgentThrottled extends Error {
   override name = "AgentThrottled";
 }
-const isThrottle = (message: string) => /too many requests|throttl|rate exceeded/i.test(message);
 
-/**
- * The slow path, as steps of the Step Functions state machine in infra/workflow.tf: answer, ground, verify, wait for a
- * human, publish or reject. Each step reads and writes the question in DynamoDB; only the id travels between states.
- * The in-step deadlines sit under the state timeouts, so a hung agent call lands as `failed` or `denied`, not as a timeout.
- */
-const DEFAULT_DEADLINE_MS = 200_000;
-const REVIEW_DEADLINE_MS = 180_000;
+const isThrottle = (message: string): boolean => /too many requests|throttl|rate exceeded/i.test(message);
+const errorMessage = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
-/**
- * Ask the evidence agent to reproduce every verified claim, and validate its review here too. Fail closed: a review that
- * is missing, late or malformed denies the answer, because nothing was proven.
- */
-async function review(deps: WorkerDeps, id: string, question: string, answer: GroundedAnswer, deadlineMs: number): Promise<EvidenceVerdict | undefined> {
-  if (!deps.reviewEvidence || !answer.claims.some((c) => c.status === "verified")) return undefined;
-  const denied = (error: string): EvidenceVerdict => ({ overall: "denied", verdicts: [], error });
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    const res = await Promise.race([
-      deps.reviewEvidence(id, question, answer),
-      new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(`The evidence agent did not answer within ${Math.round(deadlineMs / 1000)} s.`)), deadlineMs); }),
-    ]);
-    if ("refusal" in res) {
-      const message = res.errors.join("; ") || res.refusal;
-      if (res.failed && isThrottle(message)) throw new AgentThrottled(message);
-      return denied(message);
-    }
-    const parsed = parseEvidenceReview(res.review, answer);
-    return parsed.ok ? parsed.review : denied(`Review violated its contract: ${parsed.errors.join("; ")}`);
-  } catch (err) {
-    if (err instanceof AgentThrottled) throw err;
-    return denied(err instanceof Error ? err.message : String(err));
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
-}
-
-export type StepOptions = { deadlineMs?: number; reviewDeadlineMs?: number };
+const refusalAnswer = (question: string, refusal: string): GroundedAnswer => ({
+  question,
+  claims: [],
+  evidence: [],
+  summary: "",
+  refusals: [refusal],
+});
 
 async function load(deps: WorkerDeps, id: string): Promise<Question> {
   const q = await deps.store.getQuestion(id);
@@ -91,18 +59,24 @@ async function load(deps: WorkerDeps, id: string): Promise<Question> {
  * Step 1 of the state machine: run the analyst and validate its answer where it is consumed.
  * `next` tells the state machine where to go: ground and verify an answer, straight to the human for a refusal, or stop.
  */
-export async function answerStep(deps: WorkerDeps, id: string, opts: StepOptions = {}): Promise<{ next: "ground" | "decide" | "end" }> {
+export async function answerStep(
+  deps: WorkerDeps,
+  id: string,
+  opts: StepOptions = {},
+): Promise<{ next: "ground" | "decide" | "end" }> {
   const q = await load(deps, id);
   await deps.store.updateQuestion(q.id, { status: "working" });
   const started = Date.now();
-  const deadlineMs = opts.deadlineMs ?? DEFAULT_DEADLINE_MS;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const deadline = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error(`The agent did not answer within the ${Math.round(deadlineMs / 1000)} s deadline.`)), deadlineMs);
-  });
+  const deadlineMs = opts.deadlineMs ?? ANSWER_DEADLINE_MS;
+
   try {
-    const res = await Promise.race([deps.invokeAgent(q.id, q.question), deadline]);
+    const res = await withDeadline(
+      deps.invokeAgent(q.id, q.question),
+      deadlineMs,
+      `The agent did not answer within the ${seconds(deadlineMs)} deadline.`,
+    );
     const agentSeconds = Math.round((Date.now() - started) / 10) / 100;
+
     if ("refusal" in res) {
       if (res.failed) {
         // The runtime crashed (token, Bedrock, Gateway): not an answer, not a refusal. A throttle is retried by the state machine.
@@ -112,7 +86,7 @@ export async function answerStep(deps: WorkerDeps, id: string, opts: StepOptions
         return { next: "end" };
       }
       const isContractExhaustion = /evidence contract/i.test(res.refusal) && res.errors.length > 0;
-      const refusal = empty(q.question, res.refusal);
+      const refusal = refusalAnswer(q.question, res.refusal);
       await deps.store.updateQuestion(q.id, {
         answer: refusal,
         contract: isContractExhaustion ? { valid: false, errors: res.errors } : { valid: true, answer: refusal },
@@ -122,28 +96,42 @@ export async function answerStep(deps: WorkerDeps, id: string, opts: StepOptions
       });
       return { next: "decide" };
     }
+
     const contract = validateAnswer(res.answer);
     if (!contract.valid) {
-      await deps.store.updateQuestion(q.id, { status: "failed", contract, error: `Contract violated: ${contract.errors.join("; ")}`, agentSeconds });
+      await deps.store.updateQuestion(q.id, {
+        status: "failed",
+        contract,
+        error: `Contract violated: ${contract.errors.join("; ")}`,
+        agentSeconds,
+      });
       return { next: "end" };
     }
-    await deps.store.updateQuestion(q.id, { answer: contract.answer, contract: { valid: true, answer: contract.answer }, agentSeconds });
+    await deps.store.updateQuestion(q.id, {
+      answer: contract.answer,
+      contract: { valid: true, answer: contract.answer },
+      agentSeconds,
+    });
     return { next: "ground" };
   } catch (err) {
     if (err instanceof AgentThrottled) throw err;
-    await failStep(deps, q.id, err instanceof Error ? err.message : String(err));
+    await failStep(deps, q.id, errorMessage(err));
     return { next: "end" };
-  } finally {
-    if (timer) clearTimeout(timer);
   }
 }
 
 /** Step 2: Bedrock Guardrails contextual grounding of the summary against the evidence rows. */
 export async function groundStep(deps: WorkerDeps, id: string): Promise<void> {
   const q = await load(deps, id);
-  const a = q.answer;
-  if (!a) throw new Error(`question ${id} has no answer to ground`);
-  const grounding = await deps.grounding({ question: q.question, evidenceText: evidenceToText(a), summary: a.summary, claims: a.claims.map((c) => c.statement), refusals: a.refusals });
+  const answer = q.answer;
+  if (!answer) throw new Error(`question ${id} has no answer to ground`);
+  const grounding = await deps.grounding({
+    question: q.question,
+    evidenceText: evidenceToText(answer),
+    summary: answer.summary,
+    claims: answer.claims.map((c) => c.statement),
+    refusals: answer.refusals,
+  });
   await deps.store.updateQuestion(id, { grounding });
 }
 
@@ -153,6 +141,38 @@ export async function verifyStep(deps: WorkerDeps, id: string, opts: StepOptions
   if (!q.answer) throw new Error(`question ${id} has no answer to verify`);
   const evidence = await review(deps, q.id, q.question, q.answer, opts.reviewDeadlineMs ?? REVIEW_DEADLINE_MS);
   if (evidence) await deps.store.updateQuestion(id, { evidence });
+}
+
+/**
+ * Ask the evidence agent to reproduce every verified claim, and validate its review here too. Fail closed: a review that
+ * is missing, late or malformed denies the answer, because nothing was proven.
+ */
+async function review(
+  deps: WorkerDeps,
+  id: string,
+  question: string,
+  answer: GroundedAnswer,
+  deadlineMs: number,
+): Promise<EvidenceVerdict | undefined> {
+  if (!deps.reviewEvidence || !answer.claims.some((c) => c.status === "verified")) return undefined;
+  const denied = (error: string): EvidenceVerdict => ({ overall: "denied", verdicts: [], error });
+  try {
+    const res = await withDeadline(
+      deps.reviewEvidence(id, question, answer),
+      deadlineMs,
+      `The evidence agent did not answer within ${seconds(deadlineMs)}.`,
+    );
+    if ("refusal" in res) {
+      const message = res.errors.join("; ") || res.refusal;
+      if (res.failed && isThrottle(message)) throw new AgentThrottled(message);
+      return denied(message);
+    }
+    const parsed = parseEvidenceReview(res.review, answer);
+    return parsed.ok ? parsed.review : denied(`Review violated its contract: ${parsed.errors.join("; ")}`);
+  } catch (err) {
+    if (err instanceof AgentThrottled) throw err;
+    return denied(errorMessage(err));
+  }
 }
 
 /** Verify crashed or timed out as a state: fail closed, the human sees a denied answer and why. */
@@ -177,7 +197,7 @@ export async function publishStep(deps: WorkerDeps, id: string): Promise<void> {
 
 /** Step 5b: a human (or the decision timeout) rejected the answer. */
 export async function rejectStep(deps: WorkerDeps, id: string, reason: string): Promise<void> {
-  await deps.store.updateQuestion(id, { status: "rejected", rejectReason: reason.slice(0, 200) });
+  await deps.store.updateQuestion(id, { status: "rejected", rejectReason: reason.slice(0, MAX_REASON_CHARS) });
 }
 
 /** Any step that failed: the state machine's Catch lands here, so the card says why instead of hanging in Working. */
@@ -199,6 +219,6 @@ export async function runWorker(deps: WorkerDeps, event: { id: string }, opts: S
     }
     await deps.store.updateQuestion(event.id, { status: "needs_you" });
   } catch (err) {
-    await failStep(deps, event.id, err instanceof Error ? err.message : String(err));
+    await failStep(deps, event.id, errorMessage(err));
   }
 }

@@ -16,7 +16,10 @@ export function buildSystemPrompt(model: DataModel): string {
     "6. Skills are background knowledge about AWS. Where a skill disagrees with these rules (other tools, AWS CLI, asking the user, SELECT *, information_schema), these rules win: you have only the tools listed here.",
     "",
     "Write SQL with plain lowercase table and column names, no quoted identifiers. Wrap money and rates in ROUND(..., 2). 'Last week' means the most recent complete ISO week (Monday to Sunday) before today; work out its ISO year and week number and filter on iso_year and iso_week. Prefer queries that return at most 25 rows; aggregate rather than list.",
-    "When you have the data, your final message has two parts. First the complete answer for the reader as plain text (under 600 characters, non-technical, numbers exactly as returned). Then a line containing only " + JSON_MARKER + ", then one JSON object matching this schema (no commentary after it): " + GROUNDED_ANSWER_JSON_SCHEMA,
+    "When you have the data, your final message has two parts. First the complete answer for the reader as plain text (under 600 characters, non-technical, numbers exactly as returned). Then a line containing only " +
+      JSON_MARKER +
+      ", then one JSON object matching this schema (no commentary after it): " +
+      GROUNDED_ANSWER_JSON_SCHEMA,
     "In that JSON, `summary` is the same text you wrote above, every verified claim cites the evidence id of the query that supports it, `evidence[].sql` and `query_execution_id` are copied from the query tool's result, and `sample` holds every row your claims rely on (up to 25). If you refuse, put the reason in `refusals`, leave claims and evidence empty, and still write the plain-text explanation first.",
     "",
     renderModelMarkdown(model),
@@ -26,7 +29,10 @@ export function buildSystemPrompt(model: DataModel): string {
 export function buildUserPrompt(payload: InvokePayload): string {
   const lines = [`Question: ${payload.question}`];
   if (payload.hints && payload.hints.length > 0) {
-    lines.push("", "Previously verified answers to similar questions (approved by a human; use them as a guide, still run your own queries):");
+    lines.push(
+      "",
+      "Previously verified answers to similar questions (approved by a human; use them as a guide, still run your own queries):",
+    );
     for (const h of payload.hints) lines.push(`- Q: ${h.question}`, `  Verified answer: ${h.answer}`);
   }
   lines.push("", "Today's date (UTC): " + new Date().toISOString().slice(0, 10));

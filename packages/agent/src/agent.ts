@@ -24,8 +24,13 @@ const defaultSkillsDir = () => join(dirname(process.argv[1] ?? "."), "..", "skil
 export function buildAgent(opts: BuildAgentOptions): Agent {
   return new Agent({
     // Adaptive retries: a throttled Bedrock call backs off and retries inside the invocation instead of failing the card.
-    model: new BedrockModel({ modelId: opts.modelId, region: opts.region, clientConfig: { maxAttempts: 10, retryMode: "adaptive" } }),
-    systemPrompt: opts.role === "evidence" ? buildEvidenceSystemPrompt(loadDataModel()) : buildSystemPrompt(loadDataModel()),
+    model: new BedrockModel({
+      modelId: opts.modelId,
+      region: opts.region,
+      clientConfig: { maxAttempts: 10, retryMode: "adaptive" },
+    }),
+    systemPrompt:
+      opts.role === "evidence" ? buildEvidenceSystemPrompt(loadDataModel()) : buildSystemPrompt(loadDataModel()),
     tools: opts.tools,
     plugins: [new AgentSkills({ skills: [join(opts.skillsDir ?? defaultSkillsDir(), "aws")] })],
     printer: false,
@@ -39,10 +44,15 @@ export function answerText(agent: Agent, payload: InvokePayload): Promise<Invoke
 
 /** The evidence agent's path: same loop, its own contract, which must cover every verified claim of the answer. */
 export async function reviewText(agent: TextAgent, payload: ReviewPayload): Promise<ReviewResponse> {
-  const r = await invokeWithContract(agent, buildEvidenceUserPrompt(payload.question, payload.answer), (json) => {
-    const parsed = parseEvidenceReview(json, payload.answer);
-    return parsed.ok ? { ok: true, value: parsed.review } : parsed;
-  }, { marker: REVIEW_MARKER });
+  const r = await invokeWithContract(
+    agent,
+    buildEvidenceUserPrompt(payload.question, payload.answer),
+    (json) => {
+      const parsed = parseEvidenceReview(json, payload.answer);
+      return parsed.ok ? { ok: true, value: parsed.review } : parsed;
+    },
+    { marker: REVIEW_MARKER },
+  );
   if (r.ok) return { review: r.value };
   return { refusal: "The evidence agent could not produce a review that satisfies its contract.", errors: r.errors };
 }
@@ -60,11 +70,18 @@ export async function answerWith(agent: Invokable, payload: InvokePayload): Prom
   try {
     const result = await agent.invoke(buildUserPrompt(payload));
     const parsed = parseGroundedAnswer(result.structuredOutput);
-    if (!parsed.ok) return { refusal: "The agent could not produce an answer that satisfies the evidence contract.", errors: parsed.errors };
+    if (!parsed.ok)
+      return {
+        refusal: "The agent could not produce an answer that satisfies the evidence contract.",
+        errors: parsed.errors,
+      };
     return { answer: parsed.answer };
   } catch (err) {
     if (err instanceof StructuredOutputError) {
-      return { refusal: "The agent could not produce an answer that satisfies the evidence contract.", errors: [err.message] };
+      return {
+        refusal: "The agent could not produce an answer that satisfies the evidence contract.",
+        errors: [err.message],
+      };
     }
     throw err;
   }

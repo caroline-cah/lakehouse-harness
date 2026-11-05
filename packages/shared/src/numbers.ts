@@ -11,7 +11,10 @@ function parseNumber(raw: string): number {
     s = s.replace(new RegExp(`\\${decimal === "." ? "," : "."}`, "g"), "").replace(decimal, ".");
   } else if (lastComma >= 0) {
     const after = s.length - lastComma - 1;
-    s = after === 3 && (s.match(/,/g) ?? []).length >= 1 && !/^\d{1,3},\d{1,2}$/.test(s) ? s.replace(/,/g, "") : s.replace(",", ".");
+    s =
+      after === 3 && (s.match(/,/g) ?? []).length >= 1 && !/^\d{1,3},\d{1,2}$/.test(s)
+        ? s.replace(/,/g, "")
+        : s.replace(",", ".");
   } else if (lastDot >= 0) {
     const after = s.length - lastDot - 1;
     // Rows and summaries are English-formatted: a single dot is a decimal point ("12.125"); only repeated dot groups
@@ -21,7 +24,8 @@ function parseNumber(raw: string): number {
   return Number(s);
 }
 
-const MONTH = "(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\\.?";
+const MONTH =
+  "(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\\.?";
 const DAY = "(?:0?[1-9]|[12]\\d|3[01])";
 /** Dates are not facts about the data: ISO dates, day ranges before a month name, "19 October", "Oct 19". Day must be 1–31, month a real name. */
 const DATE_PATTERNS = [
@@ -54,7 +58,12 @@ function rowValues(rows: Record<string, unknown>[][]): number[] {
     for (const row of group) {
       for (const v of Object.values(row)) {
         // Athena prints doubles ≥ 1e7 in scientific notation ("1.37077078E7").
-        const n = typeof v === "number" ? v : typeof v === "string" && /^-?\d+(\.\d+)?(e[+-]?\d+)?$/i.test(v.trim()) ? Number(v) : NaN;
+        const n =
+          typeof v === "number"
+            ? v
+            : typeof v === "string" && /^-?\d+(\.\d+)?(e[+-]?\d+)?$/i.test(v.trim())
+              ? Number(v)
+              : NaN;
         if (Number.isFinite(n)) vals.push(n);
       }
     }
@@ -71,16 +80,27 @@ const near = (n: number, d: number) => Number.isFinite(d) && Math.abs(d - n) <= 
  * `quoted` are numbers the summary may repeat without evidence: the ones in the question itself ("week 42",
  * "at least 10 orders"). They are not facts about the data, and they are never used for derivations.
  */
-export function numbersTraceable(summary: string, rows: Record<string, unknown>[][], quoted: number[] = []): { ok: boolean; missing: number[] } {
+export function numbersTraceable(
+  summary: string,
+  rows: Record<string, unknown>[][],
+  quoted: number[] = [],
+): { ok: boolean; missing: number[] } {
   const values = rowValues(rows);
   const missing: number[] = [];
   for (const n of extractNumbers(summary)) {
-    let found = quoted.some((q) => direct(n, q)) || values.some((v) => direct(n, v) || direct(n, v * 100) || direct(n * 100, v));
+    let found =
+      quoted.some((q) => direct(n, q)) || values.some((v) => direct(n, v) || direct(n, v * 100) || direct(n * 100, v));
     if (!found) {
       outer: for (const a of values) {
         for (const b of values) {
           if (a === b) continue;
-          const candidates = [a - b, a + b, b === 0 ? NaN : a / b, b === 0 ? NaN : (a / b - 1) * 100, b === 0 ? NaN : (a / b) * 100];
+          const candidates = [
+            a - b,
+            a + b,
+            b === 0 ? NaN : a / b,
+            b === 0 ? NaN : (a / b - 1) * 100,
+            b === 0 ? NaN : (a / b) * 100,
+          ];
           if (candidates.some((d) => near(n, d))) {
             found = true;
             break outer;

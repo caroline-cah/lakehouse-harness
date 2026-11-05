@@ -19,10 +19,14 @@ export function queryFactsInWords(sql: string): string {
   if (where.trim()) parts.push("Filters: " + where.replace(/\s+/g, " ").trim() + ".");
   if (order.trim()) {
     // Describe only what the clause says: the key and its direction (ASC is SQL's default).
-    const items = order.replace(/\s+/g, " ").trim().split(",").map((o) => {
-      const m = /^(.*?)\s*(ASC|DESC)?\s*(?:NULLS\s+(?:FIRST|LAST))?$/i.exec(o.trim());
-      return `${(m?.[1] ?? o).trim()}, ${(m?.[2] ?? "ASC").toUpperCase() === "DESC" ? "descending" : "ascending"}`;
-    });
+    const items = order
+      .replace(/\s+/g, " ")
+      .trim()
+      .split(",")
+      .map((o) => {
+        const m = /^(.*?)\s*(ASC|DESC)?\s*(?:NULLS\s+(?:FIRST|LAST))?$/i.exec(o.trim());
+        return `${(m?.[1] ?? o).trim()}, ${(m?.[2] ?? "ASC").toUpperCase() === "DESC" ? "descending" : "ascending"}`;
+      });
     parts.push(`Rows are ordered by ${items.join("; ")}.`);
   }
   return parts.join(" ");
@@ -35,7 +39,14 @@ export function queryFactsInWords(sql: string): string {
 export function evidenceToText(answer: GroundedAnswer): string {
   const parts: string[] = [];
   for (const e of answer.evidence) {
-    const rows = e.sample.map((row, i) => `Row ${i + 1} of ${e.sample.length}: ` + Object.entries(row).map(([k, v]) => `${k} is ${String(v)}`).join(", ") + ".");
+    const rows = e.sample.map(
+      (row, i) =>
+        `Row ${i + 1} of ${e.sample.length}: ` +
+        Object.entries(row)
+          .map(([k, v]) => `${k} is ${String(v)}`)
+          .join(", ") +
+        ".",
+    );
     parts.push(`Evidence ${e.id}: the query returned ${e.row_count} rows. ${queryFactsInWords(e.sql)}`, ...rows);
   }
   const text = parts.join("\n");
@@ -77,7 +88,8 @@ export async function groundingCheck(deps: GroundingDeps, input: GroundingInput)
   if (guarded === "" && claims.length > 0) return { grounding: 0, relevance: 0, passed: false, action: "SKIPPED" };
   // A genuine refusal (refusals present, no claims, no evidence) is the only thing not graded.
   const isRefusal = (input.refusals ?? []).some((r) => r.trim() !== "");
-  if (isRefusal && claims.length === 0 && input.evidenceText.trim() === "") return { grounding: 1, relevance: 1, passed: true, action: "SKIPPED" };
+  if (isRefusal && claims.length === 0 && input.evidenceText.trim() === "")
+    return { grounding: 1, relevance: 1, passed: true, action: "SKIPPED" };
   // Nothing at all to ground (no summary, no claims) is fine.
   if (guarded === "") return { grounding: 1, relevance: 1, passed: true, action: "SKIPPED" };
   const res = await deps.bedrock.send(
@@ -104,7 +116,12 @@ export async function groundingCheck(deps: GroundingDeps, input: GroundingInput)
     if (ar) automatedReasoning = ar;
   }
   const action = res.action === "GUARDRAIL_INTERVENED" ? "GUARDRAIL_INTERVENED" : "NONE";
-  const verdict: GroundingVerdict = { grounding, relevance, passed: grounding >= threshold && relevance >= threshold && action === "NONE", action };
+  const verdict: GroundingVerdict = {
+    grounding,
+    relevance,
+    passed: grounding >= threshold && relevance >= threshold && action === "NONE",
+    action,
+  };
   if (automatedReasoning !== undefined) verdict.automatedReasoning = automatedReasoning;
   return verdict;
 }

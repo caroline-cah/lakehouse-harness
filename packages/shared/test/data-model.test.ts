@@ -26,8 +26,13 @@ describe("data model contract", () => {
   });
 
   test("bronze is not part of the model", () => {
-    expect(guardSql("SELECT order_id FROM lakehouse_bronze.orders", m)).toMatchObject({ ok: false, rule: "unknown_table" });
-    expect(guardSql("SELECT store_name, SUM(net_revenue_sek) FROM lakehouse_gold.sales GROUP BY 1", m)).toMatchObject({ ok: true });
+    expect(guardSql("SELECT order_id FROM lakehouse_bronze.orders", m)).toMatchObject({
+      ok: false,
+      rule: "unknown_table",
+    });
+    expect(guardSql("SELECT store_name, SUM(net_revenue_sek) FROM lakehouse_gold.sales GROUP BY 1", m)).toMatchObject({
+      ok: true,
+    });
   });
 
   test("markdown carries the meaning, names personal data, and never shows the build SQL", () => {

@@ -8,9 +8,12 @@ const question = process.argv[2];
 if (!question) throw new Error("usage: invoke.ts <question> [sessionId]");
 const sessionId = process.argv[3] ?? `local-${randomUUID()}-lakehouse-demo`;
 const region = process.env.AWS_REGION ?? "eu-central-1";
-const arn = process.env.AGENT_RUNTIME_ARN ?? execSync("terraform -chdir=infra output -raw agent_runtime_arn").toString().trim();
+const arn =
+  process.env.AGENT_RUNTIME_ARN ?? execSync("terraform -chdir=infra output -raw agent_runtime_arn").toString().trim();
 
-const evidenceArn = process.env.EVIDENCE_RUNTIME_ARN ?? execSync("terraform -chdir=infra output -raw evidence_runtime_arn").toString().trim();
+const evidenceArn =
+  process.env.EVIDENCE_RUNTIME_ARN ??
+  execSync("terraform -chdir=infra output -raw evidence_runtime_arn").toString().trim();
 
 const client = new BedrockAgentCoreClient({ region });
 

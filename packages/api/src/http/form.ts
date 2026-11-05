@@ -1,6 +1,9 @@
 import { MAX_NAME_CHARS, MAX_QUESTION_CHARS } from "./sanitize.js";
 
-export const EXAMPLE_QUESTIONS = ["What was last week's revenue per store?", "Which five products had the highest return rate last week?"];
+export const EXAMPLE_QUESTIONS = [
+  "What was last week's revenue per store?",
+  "Which five products had the highest return rate last week?",
+];
 
 export function renderForm(askedId?: string): string {
   const banner = askedId

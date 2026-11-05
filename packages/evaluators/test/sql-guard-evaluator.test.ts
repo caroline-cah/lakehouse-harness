@@ -1,17 +1,34 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import type { DataModel } from "@lakehouse/shared";
-import { evaluateSqlGuard as evaluateWith, extractToolCall, findTargetSpan, type EvaluatorEvent, type Span } from "../src/sql-guard-evaluator.js";
+import {
+  evaluateSqlGuard as evaluateWith,
+  extractToolCall,
+  findTargetSpan,
+  type EvaluatorEvent,
+  type Span,
+} from "../src/sql-guard-evaluator.js";
 
 // Recorded spans query the five-table model, so they are judged against it.
-const model = JSON.parse(readFileSync(new URL("../../shared/test/fixtures/five-table-model.json", import.meta.url), "utf8")) as DataModel;
+const model = JSON.parse(
+  readFileSync(new URL("../../shared/test/fixtures/five-table-model.json", import.meta.url), "utf8"),
+) as DataModel;
 const evaluateSqlGuard = (e: EvaluatorEvent) => evaluateWith(e, model);
 const spans = JSON.parse(readFileSync(new URL("./fixtures/session-spans.json", import.meta.url), "utf8")) as Span[];
 const querySpan = spans.find((s) => s.name === "execute_tool lakehouse___query")!;
 const describeSpan = spans.find((s) => s.name === "execute_tool lakehouse___describe_model")!;
 
 function event(target: Span, overrides: Partial<EvaluatorEvent> = {}): EvaluatorEvent {
-  return { schemaVersion: "1.0", evaluatorId: "ev", evaluatorName: "SqlGuard", evaluationLevel: "TOOL_CALL", evaluationInput: { sessionSpans: spans }, evaluationReferenceInputs: [], evaluationTarget: { traceIds: [target.traceId], spanIds: [target.spanId] }, ...overrides };
+  return {
+    schemaVersion: "1.0",
+    evaluatorId: "ev",
+    evaluatorName: "SqlGuard",
+    evaluationLevel: "TOOL_CALL",
+    evaluationInput: { sessionSpans: spans },
+    evaluationReferenceInputs: [],
+    evaluationTarget: { traceIds: [target.traceId], spanIds: [target.spanId] },
+    ...overrides,
+  };
 }
 
 describe("extractToolCall", () => {
@@ -31,7 +48,19 @@ describe("evaluateSqlGuard", () => {
     expect(r).toMatchObject({ label: "PASS", value: 1 });
   });
   test("fails pii sql from span", () => {
-    const bad: Span = { ...querySpan, events: [{ name: "gen_ai.tool.message", attributes: { role: "tool", id: "x", content: JSON.stringify({ sql: "SELECT email FROM customers", purpose: "p" }) } }] };
+    const bad: Span = {
+      ...querySpan,
+      events: [
+        {
+          name: "gen_ai.tool.message",
+          attributes: {
+            role: "tool",
+            id: "x",
+            content: JSON.stringify({ sql: "SELECT email FROM customers", purpose: "p" }),
+          },
+        },
+      ],
+    };
     const r = evaluateSqlGuard(event(bad, { evaluationInput: { sessionSpans: [bad] } }));
     expect(r).toMatchObject({ label: "FAIL", value: 0 });
     expect("explanation" in r && r.explanation).toMatch(/pii_column/);

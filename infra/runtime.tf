@@ -90,7 +90,7 @@ data "aws_iam_policy_document" "runtime" {
   statement {
     sid       = "DirectTools"
     actions   = ["lambda:InvokeFunction"]
-    resources = [aws_lambda_function.tools.arn]
+    resources = [module.tools.arn]
   }
   statement {
     sid       = "WorkloadIdentity"
@@ -113,7 +113,7 @@ locals {
     COGNITO_TOKEN_URL                  = local.cognito_token_url
     COGNITO_CLIENT_ID                  = aws_cognito_user_pool_client.agent.id
     COGNITO_SECRET_PARAM               = aws_ssm_parameter.gateway_client_secret.name
-    TOOLS_FUNCTION_NAME                = aws_lambda_function.tools.function_name
+    TOOLS_FUNCTION_NAME                = module.tools.function_name
     UNIFIED_TRACES_DESTINATION_ENABLED = "true"
     CODE_VERSION                       = filemd5("${path.module}/../packages/agent/.build/agent.zip")
   }

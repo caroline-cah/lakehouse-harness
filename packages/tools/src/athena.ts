@@ -1,4 +1,9 @@
-import { AthenaClient, GetQueryExecutionCommand, GetQueryResultsCommand, StartQueryExecutionCommand } from "@aws-sdk/client-athena";
+import {
+  AthenaClient,
+  GetQueryExecutionCommand,
+  GetQueryResultsCommand,
+  StartQueryExecutionCommand,
+} from "@aws-sdk/client-athena";
 import { fromTemporaryCredentials } from "@aws-sdk/credential-providers";
 import type { AthenaRunner, QueryOutput } from "./tools.js";
 
@@ -27,7 +32,10 @@ export function normaliseCell(v: string | null | undefined): string | null {
 export function createAthenaRunner(opts: AthenaOptions): AthenaRunner {
   const client = new AthenaClient({
     region: opts.region,
-    credentials: fromTemporaryCredentials({ params: { RoleArn: opts.roleArn, RoleSessionName: "lakehouse-tools" }, clientConfig: { region: opts.region } }),
+    credentials: fromTemporaryCredentials({
+      params: { RoleArn: opts.roleArn, RoleSessionName: "lakehouse-tools" },
+      clientConfig: { region: opts.region },
+    }),
   });
   const pollMs = opts.pollMs ?? 500;
   const timeoutMs = opts.timeoutMs ?? 60_000;
@@ -35,7 +43,11 @@ export function createAthenaRunner(opts: AthenaOptions): AthenaRunner {
   return {
     async run(sql: string): Promise<QueryOutput> {
       const start = await client.send(
-        new StartQueryExecutionCommand({ QueryString: sql, WorkGroup: opts.workgroup, QueryExecutionContext: { Database: opts.database } }),
+        new StartQueryExecutionCommand({
+          QueryString: sql,
+          WorkGroup: opts.workgroup,
+          QueryExecutionContext: { Database: opts.database },
+        }),
       );
       const id = start.QueryExecutionId!;
       const deadline = Date.now() + timeoutMs;
