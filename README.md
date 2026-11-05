@@ -8,7 +8,7 @@ cannot reproduce. Bedrock Guardrails checks the answer, and nothing is published
 
 Companion code for two AWS user-group talks (Linköping 29 Oct 2026, Stockholm 5 Nov 2026) and Part 3 of the
 [Harness Engineering](https://builder.aws.com/content/3HfiXvfzDCTk6OT5ryfygmpJu6W/harness-engineering-building-an-ops-agent-with-agentcore-and-strands)
-series. Slides, speaker notes and the demo runbook are in [`talk/`](talk/README.md).
+series. The slides are in [`talk/`](talk/).
 
 ## The solution
 
@@ -29,7 +29,7 @@ series. Slides, speaker notes and the demo runbook are in [`talk/`](talk/README.
 | `data-model/` | The governed data model as Markdown with front matter; compiled into `packages/shared` and Terraform. |
 | `golden/`, `fixtures/` | The golden question set with expected answers, and recordings the board can replay. |
 | `scripts/` | Operations: seed, reset, invoke, golden evaluation, lakehouse generation. |
-| `talk/` | Slides, speaker notes and the demo runbook. |
+| `talk/` | The slides. |
 
 Every Lambda follows one convention: the entrypoint is `src/handlers/<name>.ts`, it bundles to `dist/<name>/index.mjs`,
 and Terraform points at that folder with `module "<name>"`. The entrypoint reads the environment and builds the AWS
