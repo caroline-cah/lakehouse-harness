@@ -8,8 +8,7 @@ cannot reproduce. Bedrock Guardrails checks the answer, and nothing is published
 
 Companion code for two AWS user-group talks (Linköping 29 Oct 2026, Stockholm 5 Nov 2026) and Part 3 of the
 [Harness Engineering](https://builder.aws.com/content/3HfiXvfzDCTk6OT5ryfygmpJu6W/harness-engineering-building-an-ops-agent-with-agentcore-and-strands)
-series, by Caroline Cah, Digital Lead at Wallenius Wilhelmsen. Slides, speaker notes and the demo runbook are in
-[`talk/`](talk/README.md).
+series. Slides, speaker notes and the demo runbook are in [`talk/`](talk/README.md).
 
 ## The solution
 
